@@ -231,3 +231,58 @@ def select_context(root: Path, analysis: RepositoryAnalysis, max_files: int = 5,
     return ContextBundle(items=selected, total_token_estimate=total,
                          max_files=max_files, max_snippets=max_snippets,
                          max_context_tokens=max_context_tokens)
+
+
+def expand_context(root: Path, analysis: RepositoryAnalysis, previous: ContextBundle,
+                   failure_text: str, changed_files: list[str],
+                   requested_files: list[str]) -> ContextBundle:
+    """Rerank current snippets from failure evidence within the original budgets."""
+    paths = list(dict.fromkeys([analysis.dependency_file, *analysis.source_files,
+                                *analysis.test_files, *analysis.configuration_files]))
+    old_keys = {(item.path, item.symbol, item.start_line) for item in previous.items}
+    ranked: list[ContextItem] = []
+    for path in paths:
+        for item in _snippets(root, path, analysis):
+            signals: list[str] = []
+            bonus = 0
+            if any(request == path or request in item.symbol or
+                   (len(request) > 3 and request in item.content)
+                   for request in requested_files):
+                bonus += 180
+                signals.append("requested for failure analysis")
+            if path in failure_text:
+                bonus += 150
+                signals.append("appears in failing output or stack trace")
+            if path in changed_files:
+                bonus += 100
+                signals.append("modified by migration patch")
+            if path in analysis.test_files and ("test" in failure_text.lower()):
+                bonus += 65
+                signals.append("related failing test")
+            if (path, item.symbol, item.start_line) in old_keys:
+                bonus += 20
+                signals.append("previous selected context")
+            if bonus == 0:
+                continue
+            ranked.append(item.copy(update={"score": item.score + bonus,
+                                            "reason": item.reason + "; " +
+                                            "; ".join(signals)}))
+    ranked.sort(key=lambda item: (-item.score, item.path, item.start_line, item.symbol))
+    selected: list[ContextItem] = []
+    files: set[str] = set()
+    total = 0
+    for item in ranked:
+        if len(selected) >= previous.max_snippets:
+            break
+        if item.path not in files and len(files) >= previous.max_files:
+            continue
+        if total + item.token_estimate > previous.max_context_tokens:
+            continue
+        selected.append(item)
+        files.add(item.path)
+        total += item.token_estimate
+    if not selected:
+        raise ValueError("failure context budget selected no snippets")
+    return ContextBundle(items=selected, total_token_estimate=total,
+                         max_files=previous.max_files, max_snippets=previous.max_snippets,
+                         max_context_tokens=previous.max_context_tokens)

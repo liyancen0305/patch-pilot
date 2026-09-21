@@ -1,0 +1,270 @@
+[
+  {
+    "run_id": "fd3967bda4a14ce48fcd5c86ac8a670f",
+    "attempt_number": 1,
+    "component": "Migration Planner",
+    "model": "controlled-repair-test-double",
+    "prompt_name": "03_failure_repair_path",
+    "prompt_version": "v1",
+    "input_metadata": {
+      "retry": 1,
+      "workflow_attempt": 1,
+      "context_files": [
+        "src/shop/orders.py",
+        "src/shop/users.py",
+        "src/shop/base.py",
+        "src/shop/orders.py",
+        "src/shop/orders.py",
+        "src/shop/users.py",
+        "tests/test_shop.py",
+        "tests/test_shop.py",
+        "tests/test_shop.py",
+        "tests/test_shop.py",
+        "tests/test_shop.py",
+        "src/shop/orders.py",
+        "src/shop/orders.py",
+        "src/shop/users.py",
+        "src/shop/users.py",
+        "pyproject.toml",
+        "pyproject.toml",
+        "src/shop/base.py"
+      ],
+      "characters": 13255
+    },
+    "input_tokens": 100,
+    "output_tokens": 80,
+    "latency_seconds": 0.0024690979998922558,
+    "estimated_cost_usd": 0.0,
+    "structured_output": {
+      "summary": "Pydantic v2 migration",
+      "planned_changes": [
+        {
+          "file": "pyproject.toml",
+          "symbol": "Pydantic models",
+          "reason": "v1 dependency or API",
+          "change": "Use v2 API",
+          "expected_effect": "Preserve behavior"
+        },
+        {
+          "file": "src/shop/base.py",
+          "symbol": "Pydantic models",
+          "reason": "v1 dependency or API",
+          "change": "Use v2 API",
+          "expected_effect": "Preserve behavior"
+        },
+        {
+          "file": "src/shop/users.py",
+          "symbol": "Pydantic models",
+          "reason": "v1 dependency or API",
+          "change": "Use v2 API",
+          "expected_effect": "Preserve behavior"
+        },
+        {
+          "file": "src/shop/orders.py",
+          "symbol": "Pydantic models",
+          "reason": "v1 dependency or API",
+          "change": "Use v2 API",
+          "expected_effect": "Preserve behavior"
+        },
+        {
+          "file": "tests/test_shop.py",
+          "symbol": "Pydantic models",
+          "reason": "v1 dependency or API",
+          "change": "Use v2 API",
+          "expected_effect": "Preserve behavior"
+        }
+      ],
+      "affected_files": [
+        "pyproject.toml",
+        "src/shop/base.py",
+        "src/shop/users.py",
+        "src/shop/orders.py",
+        "tests/test_shop.py"
+      ],
+      "risks": [
+        "validator semantics"
+      ],
+      "validation_plan": [
+        "pytest",
+        "mypy",
+        "ruff",
+        "runtime"
+      ]
+    },
+    "error": null,
+    "timestamp": "2026-09-20T23:15:38.745165+00:00"
+  },
+  {
+    "run_id": "fd3967bda4a14ce48fcd5c86ac8a670f",
+    "attempt_number": 1,
+    "component": "Patch Generator",
+    "model": "controlled-repair-test-double",
+    "prompt_name": "03_failure_repair_path",
+    "prompt_version": "v1",
+    "input_metadata": {
+      "retry": 1,
+      "workflow_attempt": 1,
+      "context_files": [
+        "src/shop/orders.py",
+        "src/shop/users.py",
+        "src/shop/base.py",
+        "src/shop/orders.py",
+        "src/shop/orders.py",
+        "src/shop/users.py",
+        "tests/test_shop.py",
+        "tests/test_shop.py",
+        "tests/test_shop.py",
+        "tests/test_shop.py",
+        "tests/test_shop.py",
+        "src/shop/orders.py",
+        "src/shop/orders.py",
+        "src/shop/users.py",
+        "src/shop/users.py",
+        "pyproject.toml",
+        "pyproject.toml",
+        "src/shop/base.py"
+      ],
+      "characters": 9573
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "latency_seconds": 0.005776520999461354,
+    "estimated_cost_usd": 0.0,
+    "structured_output": {
+      "changes": [
+        {
+          "path": "pyproject.toml",
+          "content": "[build-system]\nrequires = [\"setuptools>=68\"]\nbuild-backend = \"setuptools.build_meta\"\n\n[project]\nname = \"patchpilot-pydantic-v1-fixture\"\nversion = \"0.1.0\"\nrequires-python = \">=3.10\"\ndependencies = [\"pydantic>=2,<3\"]\n\n[tool.setuptools.packages.find]\nwhere = [\"src\"]\n\n[tool.pytest.ini_options]\ntestpaths = [\"tests\"]\n\n[tool.mypy]\npython_version = \"3.10\"\nstrict = true\nmypy_path = \"src\"\n\n[tool.ruff]\nline-length = 88\ntarget-version = \"py310\"\n"
+        },
+        {
+          "path": "src/shop/base.py",
+          "content": "\"\"\"Shared Pydantic v2 model configuration.\"\"\"\n\nfrom pydantic import BaseModel, ConfigDict\n\n\nclass ShopModel(BaseModel):\n    model_config = ConfigDict(str_strip_whitespace=True, extra=\"forbid\", validate_assignment=True)\n"
+        },
+        {
+          "path": "src/shop/users.py",
+          "content": "\"\"\"User model and field validation.\"\"\"\n\nfrom pydantic import field_validator\n\nfrom .base import ShopModel\n\n\nclass User(ShopModel):\n    id: int\n    email: str\n    name: str\n\n    @field_validator(\"id\")\n    @classmethod\n    def positive_id(cls, value: int) -> int:\n        if value <= 0:\n            raise ValueError(\"id must be positive\")\n        return value\n\n    @field_validator(\"email\")\n    @classmethod\n    def normalized_email(cls, value: str) -> str:\n        value = value.strip()\n        if \"@\" not in value or value.startswith(\"@\") or value.endswith(\"@\"):\n            raise ValueError(\"invalid email\")\n        return value\n"
+        },
+        {
+          "path": "src/shop/orders.py",
+          "content": "\"\"\"Order models with cross-field validation.\"\"\"\n\nfrom pydantic import field_validator, model_validator\nfrom typing_extensions import Self\n\nfrom .base import ShopModel\nfrom .users import User\n\n\nclass OrderItem(ShopModel):\n    sku: str\n    quantity: int\n    unit_price_cents: int\n\n    @field_validator(\"quantity\", \"unit_price_cents\")\n    @classmethod\n    def positive_amount(cls, value: int) -> int:\n        if value <= 0:\n            raise ValueError(\"amount must be positive\")\n        return value\n\n\nclass Order(ShopModel):\n    id: int\n    customer: User\n    items: list[OrderItem]\n    total_cents: int\n\n    @model_validator(mode=\"after\")\n    def total_matches_items(self) -> Self:\n        expected = sum(item.quantity * item.unit_price_cents for item in self.items)\n        if self.total_cents != expected:\n            raise ValueError(\"total does not match items\")\n        return self\n"
+        },
+        {
+          "path": "tests/test_shop.py",
+          "content": "import pytest\nfrom pydantic import ValidationError\n\nfrom shop import Order, OrderItem, User\n\n\ndef test_valid_user_and_normalization() -> None:\n    user = User(id=1, email=\" ADA@EXAMPLE.COM \", name=\" Ada \")\n    assert user.email == \"ada@example.com\"\n    assert user.name == \"Ada\"\n\n\n@pytest.mark.parametrize(\"data\", [\n    {\"id\": 0, \"email\": \"a@example.com\", \"name\": \"A\"},\n    {\"id\": 1, \"email\": \"invalid\", \"name\": \"A\"},\n])\ndef test_invalid_user_rejected(data: dict[str, object]) -> None:\n    with pytest.raises(ValidationError):\n        User.model_validate(data)\n\n\ndef test_shared_config_rejects_extra_and_validates_assignment() -> None:\n    with pytest.raises(ValidationError):\n        User.model_validate({\"id\": 1, \"email\": \"a@example.com\", \"name\": \"A\", \"unknown\": True})\n    user = User(id=1, email=\"a@example.com\", name=\"A\")\n    with pytest.raises(ValidationError):\n        user.id = -1\n\n\ndef test_item_field_validation() -> None:\n    with pytest.raises(ValidationError):\n        OrderItem(sku=\"x\", quantity=0, unit_price_cents=100)\n\n\ndef test_nested_parse_and_serialization() -> None:\n    order = Order.model_validate({\n        \"id\": 10,\n        \"customer\": {\"id\": 1, \"email\": \"ADA@EXAMPLE.COM\", \"name\": \" Ada \"},\n        \"items\": [\n            {\"sku\": \"pen\", \"quantity\": 2, \"unit_price_cents\": 150},\n            {\"sku\": \"book\", \"quantity\": 1, \"unit_price_cents\": 700},\n        ],\n        \"total_cents\": 1000,\n    })\n    assert isinstance(order.customer, User)\n    assert isinstance(order.items[0], OrderItem)\n    assert order.model_dump()[\"customer\"] == {\n        \"id\": 1, \"email\": \"ada@example.com\", \"name\": \"Ada\"\n    }\n    assert order.model_dump()[\"items\"][0][\"sku\"] == \"pen\"\n\n\ndef test_order_total_matches_multiple_items() -> None:\n    with pytest.raises(ValidationError, match=\"total does not match items\"):\n        Order.model_validate({\n            \"id\": 10,\n            \"customer\": {\"id\": 1, \"email\": \"a@example.com\", \"name\": \"A\"},\n            \"items\": [{\"sku\": \"pen\", \"quantity\": 2, \"unit_price_cents\": 150}],\n            \"total_cents\": 299,\n        })\n"
+        }
+      ],
+      "rationale": "Replace Pydantic v1 APIs"
+    },
+    "error": null,
+    "timestamp": "2026-09-20T23:15:38.772156+00:00"
+  },
+  {
+    "run_id": "fd3967bda4a14ce48fcd5c86ac8a670f",
+    "attempt_number": 1,
+    "component": "Failure Analyzer",
+    "model": "controlled-repair-test-double",
+    "prompt_name": "03_failure_repair_path",
+    "prompt_version": "v1",
+    "input_metadata": {
+      "retry": 1,
+      "workflow_attempt": 1,
+      "context_files": [
+        "src/shop/orders.py",
+        "src/shop/users.py",
+        "src/shop/base.py",
+        "src/shop/orders.py",
+        "src/shop/orders.py",
+        "src/shop/users.py",
+        "tests/test_shop.py",
+        "tests/test_shop.py",
+        "tests/test_shop.py",
+        "tests/test_shop.py",
+        "tests/test_shop.py",
+        "src/shop/orders.py",
+        "src/shop/orders.py",
+        "src/shop/users.py",
+        "src/shop/users.py",
+        "pyproject.toml",
+        "pyproject.toml",
+        "src/shop/base.py"
+      ],
+      "characters": 29859
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "latency_seconds": 0.002447509000376158,
+    "estimated_cost_usd": 0.0,
+    "structured_output": {
+      "failure_type": "migration_behavior_regression",
+      "likely_root_cause": "email normalizer no longer lowercases",
+      "supporting_evidence": [
+        "test_valid_user_and_normalization fails"
+      ],
+      "proposed_repair": "restore lowercase normalization",
+      "files_to_modify": [
+        "src/shop/users.py"
+      ],
+      "reason_for_each_file": [
+        {
+          "file": "src/shop/users.py",
+          "reason": "email normalization regression",
+          "supporting_evidence": "failing email assertion",
+          "expected_effect": "preserve lowercase email",
+          "required_verification": "full suite"
+        }
+      ],
+      "additional_context_needed": [],
+      "confidence": 0.95
+    },
+    "error": null,
+    "timestamp": "2026-09-20T23:15:46.774171+00:00"
+  },
+  {
+    "run_id": "fd3967bda4a14ce48fcd5c86ac8a670f",
+    "attempt_number": 2,
+    "component": "Repair Generator",
+    "model": "controlled-repair-test-double",
+    "prompt_name": "03_failure_repair_path",
+    "prompt_version": "v1",
+    "input_metadata": {
+      "retry": 1,
+      "workflow_attempt": 2,
+      "context_files": [
+        "src/shop/orders.py",
+        "src/shop/users.py",
+        "src/shop/base.py",
+        "src/shop/orders.py",
+        "src/shop/orders.py",
+        "src/shop/users.py",
+        "tests/test_shop.py",
+        "tests/test_shop.py",
+        "tests/test_shop.py",
+        "tests/test_shop.py",
+        "tests/test_shop.py",
+        "src/shop/orders.py",
+        "src/shop/orders.py",
+        "src/shop/users.py",
+        "src/shop/users.py",
+        "pyproject.toml",
+        "pyproject.toml",
+        "src/shop/base.py"
+      ],
+      "characters": 19625
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "latency_seconds": 0.00582553200001712,
+    "estimated_cost_usd": 0.0,
+    "structured_output": {
+      "changes": [
+        {
+          "path": "src/shop/users.py",
+          "content": "\"\"\"User model and field validation.\"\"\"\n\nfrom pydantic import field_validator\n\nfrom .base import ShopModel\n\n\nclass User(ShopModel):\n    id: int\n    email: str\n    name: str\n\n    @field_validator(\"id\")\n    @classmethod\n    def positive_id(cls, value: int) -> int:\n        if value <= 0:\n            raise ValueError(\"id must be positive\")\n        return value\n\n    @field_validator(\"email\")\n    @classmethod\n    def normalized_email(cls, value: str) -> str:\n        value = value.lower()\n        if \"@\" not in value or value.startswith(\"@\") or value.endswith(\"@\"):\n            raise ValueError(\"invalid email\")\n        return value\n"
+        }
+      ],
+      "rationale": "repair email normalization"
+    },
+    "error": null,
+    "timestamp": "2026-09-20T23:15:46.832816+00:00"
+  }
+]

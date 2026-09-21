@@ -1,0 +1,56 @@
+{
+  "summary": "Pydantic v2 migration",
+  "planned_changes": [
+    {
+      "file": "pyproject.toml",
+      "symbol": "Pydantic models",
+      "reason": "v1 dependency or API",
+      "change": "Use v2 API",
+      "expected_effect": "Preserve behavior"
+    },
+    {
+      "file": "src/shop/base.py",
+      "symbol": "Pydantic models",
+      "reason": "v1 dependency or API",
+      "change": "Use v2 API",
+      "expected_effect": "Preserve behavior"
+    },
+    {
+      "file": "src/shop/users.py",
+      "symbol": "Pydantic models",
+      "reason": "v1 dependency or API",
+      "change": "Use v2 API",
+      "expected_effect": "Preserve behavior"
+    },
+    {
+      "file": "src/shop/orders.py",
+      "symbol": "Pydantic models",
+      "reason": "v1 dependency or API",
+      "change": "Use v2 API",
+      "expected_effect": "Preserve behavior"
+    },
+    {
+      "file": "tests/test_shop.py",
+      "symbol": "Pydantic models",
+      "reason": "v1 dependency or API",
+      "change": "Use v2 API",
+      "expected_effect": "Preserve behavior"
+    }
+  ],
+  "affected_files": [
+    "pyproject.toml",
+    "src/shop/base.py",
+    "src/shop/users.py",
+    "src/shop/orders.py",
+    "tests/test_shop.py"
+  ],
+  "risks": [
+    "validator semantics"
+  ],
+  "validation_plan": [
+    "pytest",
+    "mypy",
+    "ruff",
+    "runtime"
+  ]
+}

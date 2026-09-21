@@ -1,0 +1,823 @@
+{
+  "run_id": "4e9cc43714a34b3bae72f65869b52e5c",
+  "request": {
+    "repository": "/home/liyan/Documents/github/patch-pilot/artifacts/controlled-repair-e0d9667a0126/target",
+    "migration_goal": "Upgrade Pydantic v1 to Pydantic v2",
+    "language": "Python",
+    "constraints": [
+      "remain in Python",
+      "preserve existing behavior",
+      "do not modify unrelated files",
+      "do not deploy automatically",
+      "do not merge automatically"
+    ]
+  },
+  "current_state": "READY_FOR_PR",
+  "prompt_name": "03_failure_repair_path",
+  "prompt_version": "v1",
+  "attempt_number": 2,
+  "repository_identifiers": {
+    "canonical": "/home/liyan/Documents/github/patch-pilot/fixtures/pydantic_v1_app",
+    "target": "/home/liyan/Documents/github/patch-pilot/artifacts/controlled-repair-e0d9667a0126/target",
+    "target_main_commit": "2e147078a4bc369489d1f6b1a97db288bb9b8e97",
+    "sandbox_bundle": "/home/liyan/Documents/github/patch-pilot/artifacts/controlled-repair-e0d9667a0126/sandbox-snapshot.bundle",
+    "target_commit": "dbf47250eecbdad701d6963ce6534ff9627dedab"
+  },
+  "analysis": {
+    "dependency_file": "pyproject.toml",
+    "pydantic_version": "==1.10.26",
+    "source_files": [
+      "src/shop/__init__.py",
+      "src/shop/base.py",
+      "src/shop/orders.py",
+      "src/shop/users.py"
+    ],
+    "test_files": [
+      "tests/test_shop.py"
+    ],
+    "configuration_files": [],
+    "imports": {
+      "src/shop/__init__.py": [
+        ".orders",
+        ".users"
+      ],
+      "src/shop/base.py": [
+        "pydantic"
+      ],
+      "src/shop/orders.py": [
+        "pydantic",
+        ".base",
+        ".users"
+      ],
+      "src/shop/users.py": [
+        "pydantic",
+        ".base"
+      ]
+    },
+    "classes": {
+      "src/shop/__init__.py": [],
+      "src/shop/base.py": [
+        "ShopModel:BaseModel",
+        "Config:"
+      ],
+      "src/shop/orders.py": [
+        "OrderItem:ShopModel",
+        "Order:ShopModel"
+      ],
+      "src/shop/users.py": [
+        "User:ShopModel"
+      ]
+    },
+    "decorators": {
+      "src/shop/__init__.py": [],
+      "src/shop/base.py": [],
+      "src/shop/orders.py": [
+        "positive_amount:validator('quantity', 'unit_price_cents')",
+        "total_matches_items:root_validator"
+      ],
+      "src/shop/users.py": [
+        "positive_id:validator('id')",
+        "normalized_email:validator('email')"
+      ]
+    },
+    "v1_usages": {
+      "src/shop/__init__.py": [],
+      "src/shop/base.py": [
+        "anystr_strip_whitespace",
+        "class Config"
+      ],
+      "src/shop/orders.py": [
+        "root_validator",
+        "validator"
+      ],
+      "src/shop/users.py": [
+        "validator"
+      ]
+    },
+    "related_tests": {
+      "src/shop/__init__.py": [],
+      "src/shop/base.py": [],
+      "src/shop/orders.py": [
+        "tests/test_shop.py"
+      ],
+      "src/shop/users.py": [
+        "tests/test_shop.py"
+      ]
+    },
+    "evidence": {
+      "pyproject.toml": [
+        "TOML dependency: pydantic==1.10.26",
+        "rg:./pyproject.toml:6:name = \"patchpilot-pydantic-v1-fixture\"",
+        "rg:./pyproject.toml:9:dependencies = [\"pydantic==1.10.26\"]"
+      ],
+      "src/shop/__init__.py": [],
+      "src/shop/base.py": [
+        "rg:./src/shop/base.py:3:from pydantic import BaseModel",
+        "rg:./src/shop/base.py:7:    class Config:",
+        "AST class ShopModel inherits BaseModel",
+        "AST class Config inherits object",
+        "AST import pydantic"
+      ],
+      "src/shop/orders.py": [
+        "rg:./src/shop/orders.py:4:from pydantic import root_validator, validator",
+        "rg:./src/shop/orders.py:15:    @validator(\"quantity\", \"unit_price_cents\")",
+        "rg:./src/shop/orders.py:28:    @root_validator",
+        "AST class OrderItem inherits ShopModel",
+        "AST class Order inherits ShopModel",
+        "AST import pydantic",
+        "AST decorator positive_amount: validator('quantity', 'unit_price_cents')",
+        "AST decorator total_matches_items: root_validator"
+      ],
+      "src/shop/users.py": [
+        "rg:./src/shop/users.py:3:from pydantic import validator",
+        "rg:./src/shop/users.py:13:    @validator(\"id\")",
+        "rg:./src/shop/users.py:19:    @validator(\"email\")",
+        "AST class User inherits ShopModel",
+        "AST import pydantic",
+        "AST decorator positive_id: validator('id')",
+        "AST decorator normalized_email: validator('email')"
+      ],
+      "tests/test_shop.py": [
+        "rg:./tests/test_shop.py:2:from pydantic import ValidationError",
+        "rg:./tests/test_shop.py:19:        User.parse_obj(data)",
+        "rg:./tests/test_shop.py:24:        User.parse_obj({\"id\": 1, \"email\": \"a@example.com\", \"name\": \"A\", \"unknown\": True})",
+        "rg:./tests/test_shop.py:36:    order = Order.parse_obj({",
+        "rg:./tests/test_shop.py:47:    assert order.dict()[\"customer\"] == {",
+        "rg:./tests/test_shop.py:50:    assert order.dict()[\"items\"][0][\"sku\"] == \"pen\"",
+        "rg:./tests/test_shop.py:55:        Order.parse_obj({",
+        "rg reference to OrderItem: ./tests/test_shop.py:4:from shop import Order, OrderItem, User",
+        "rg reference to OrderItem: ./tests/test_shop.py:32:        OrderItem(sku=\"x\", quantity=0, unit_price_cents=100)",
+        "rg reference to OrderItem: ./tests/test_shop.py:46:    assert isinstance(order.items[0], OrderItem)",
+        "rg reference to Order: ./tests/test_shop.py:4:from shop import Order, OrderItem, User",
+        "rg reference to Order: ./tests/test_shop.py:36:    order = Order.parse_obj({",
+        "rg reference to Order: ./tests/test_shop.py:55:        Order.parse_obj({",
+        "rg reference to User: ./tests/test_shop.py:4:from shop import Order, OrderItem, User",
+        "rg reference to User: ./tests/test_shop.py:8:    user = User(id=1, email=\" ADA@EXAMPLE.COM \", name=\" Ada \")",
+        "rg reference to User: ./tests/test_shop.py:19:        User.parse_obj(data)",
+        "rg reference to User: ./tests/test_shop.py:24:        User.parse_obj({\"id\": 1, \"email\": \"a@example.com\", \"name\": \"A\", \"unknown\": True})",
+        "rg reference to User: ./tests/test_shop.py:25:    user = User(id=1, email=\"a@example.com\", name=\"A\")",
+        "rg reference to User: ./tests/test_shop.py:45:    assert isinstance(order.customer, User)",
+        "AST tests: test_valid_user_and_normalization, test_invalid_user_rejected, test_shared_config_rejects_extra_and_validates_assignment, test_item_field_validation, test_nested_parse_and_serialization, test_order_total_matches_multiple_items"
+      ]
+    }
+  },
+  "context": {
+    "items": [
+      {
+        "path": "src/shop/orders.py",
+        "location": "4-4",
+        "symbol": "from pydantic import root_validator, validator",
+        "start_line": 4,
+        "end_line": 4,
+        "content": "from pydantic import root_validator, validator\n",
+        "score": 195,
+        "reason": "direct migrated API usage; direct Pydantic import",
+        "token_estimate": 11
+      },
+      {
+        "path": "src/shop/users.py",
+        "location": "3-3",
+        "symbol": "from pydantic import validator",
+        "start_line": 3,
+        "end_line": 3,
+        "content": "from pydantic import validator\n",
+        "score": 195,
+        "reason": "direct migrated API usage; direct Pydantic import",
+        "token_estimate": 7
+      },
+      {
+        "path": "src/shop/base.py",
+        "location": "6-10",
+        "symbol": "ShopModel",
+        "start_line": 6,
+        "end_line": 10,
+        "content": "class ShopModel(BaseModel):\n    class Config:\n        anystr_strip_whitespace = True\n        extra = \"forbid\"\n        validate_assignment = True\n",
+        "score": 190,
+        "reason": "direct migrated API usage; shared model inheritance or configuration",
+        "token_estimate": 36
+      },
+      {
+        "path": "src/shop/orders.py",
+        "location": "10-15",
+        "symbol": "OrderItem",
+        "start_line": 10,
+        "end_line": 15,
+        "content": "class OrderItem(ShopModel):\n    sku: str\n    quantity: int\n    unit_price_cents: int\n\n    @validator(\"quantity\", \"unit_price_cents\")\n",
+        "score": 190,
+        "reason": "direct migrated API usage; shared model inheritance or configuration",
+        "token_estimate": 33
+      },
+      {
+        "path": "src/shop/orders.py",
+        "location": "22-28",
+        "symbol": "Order",
+        "start_line": 22,
+        "end_line": 28,
+        "content": "class Order(ShopModel):\n    id: int\n    customer: User\n    items: list[OrderItem]\n    total_cents: int\n\n    @root_validator\n",
+        "score": 190,
+        "reason": "direct migrated API usage; shared model inheritance or configuration",
+        "token_estimate": 31
+      },
+      {
+        "path": "src/shop/users.py",
+        "location": "8-13",
+        "symbol": "User",
+        "start_line": 8,
+        "end_line": 13,
+        "content": "class User(ShopModel):\n    id: int\n    email: str\n    name: str\n\n    @validator(\"id\")\n",
+        "score": 190,
+        "reason": "direct migrated API usage; shared model inheritance or configuration",
+        "token_estimate": 21
+      },
+      {
+        "path": "tests/test_shop.py",
+        "location": "13-19",
+        "symbol": "test_invalid_user_rejected",
+        "start_line": 13,
+        "end_line": 19,
+        "content": "@pytest.mark.parametrize(\"data\", [\n    {\"id\": 0, \"email\": \"a@example.com\", \"name\": \"A\"},\n    {\"id\": 1, \"email\": \"invalid\", \"name\": \"A\"},\n])\ndef test_invalid_user_rejected(data: dict[str, object]) -> None:\n    with pytest.raises(ValidationError):\n        User.parse_obj(data)\n",
+        "score": 180,
+        "reason": "direct migrated API usage; test exercising affected model",
+        "token_estimate": 68
+      },
+      {
+        "path": "tests/test_shop.py",
+        "location": "22-27",
+        "symbol": "test_shared_config_rejects_extra_and_validates_assignment",
+        "start_line": 22,
+        "end_line": 27,
+        "content": "def test_shared_config_rejects_extra_and_validates_assignment() -> None:\n    with pytest.raises(ValidationError):\n        User.parse_obj({\"id\": 1, \"email\": \"a@example.com\", \"name\": \"A\", \"unknown\": True})\n    user = User(id=1, email=\"a@example.com\", name=\"A\")\n    with pytest.raises(ValidationError):\n        user.id = -1\n",
+        "score": 180,
+        "reason": "direct migrated API usage; test exercising affected model",
+        "token_estimate": 80
+      },
+      {
+        "path": "tests/test_shop.py",
+        "location": "35-50",
+        "symbol": "test_nested_parse_and_serialization",
+        "start_line": 35,
+        "end_line": 50,
+        "content": "def test_nested_parse_and_serialization() -> None:\n    order = Order.parse_obj({\n        \"id\": 10,\n        \"customer\": {\"id\": 1, \"email\": \"ADA@EXAMPLE.COM\", \"name\": \" Ada \"},\n        \"items\": [\n            {\"sku\": \"pen\", \"quantity\": 2, \"unit_price_cents\": 150},\n            {\"sku\": \"book\", \"quantity\": 1, \"unit_price_cents\": 700},\n        ],\n        \"total_cents\": 1000,\n    })\n    assert isinstance(order.customer, User)\n    assert isinstance(order.items[0], OrderItem)\n    assert order.dict()[\"customer\"] == {\n        \"id\": 1, \"email\": \"ada@example.com\", \"name\": \"Ada\"\n    }\n    assert order.dict()[\"items\"][0][\"sku\"] == \"pen\"\n",
+        "score": 180,
+        "reason": "direct migrated API usage; test exercising affected model",
+        "token_estimate": 157
+      },
+      {
+        "path": "tests/test_shop.py",
+        "location": "53-60",
+        "symbol": "test_order_total_matches_multiple_items",
+        "start_line": 53,
+        "end_line": 60,
+        "content": "def test_order_total_matches_multiple_items() -> None:\n    with pytest.raises(ValidationError, match=\"total does not match items\"):\n        Order.parse_obj({\n            \"id\": 10,\n            \"customer\": {\"id\": 1, \"email\": \"a@example.com\", \"name\": \"A\"},\n            \"items\": [{\"sku\": \"pen\", \"quantity\": 2, \"unit_price_cents\": 150}],\n            \"total_cents\": 299,\n        })\n",
+        "score": 180,
+        "reason": "direct migrated API usage; test exercising affected model",
+        "token_estimate": 94
+      },
+      {
+        "path": "tests/test_shop.py",
+        "location": "2-2",
+        "symbol": "from pydantic import ValidationError",
+        "start_line": 2,
+        "end_line": 2,
+        "content": "from pydantic import ValidationError\n",
+        "score": 145,
+        "reason": "direct Pydantic import; test exercising affected model",
+        "token_estimate": 9
+      },
+      {
+        "path": "src/shop/orders.py",
+        "location": "15-19",
+        "symbol": "OrderItem.positive_amount",
+        "start_line": 15,
+        "end_line": 19,
+        "content": "    @validator(\"quantity\", \"unit_price_cents\")\n    def positive_amount(cls, value: int) -> int:\n        if value <= 0:\n            raise ValueError(\"amount must be positive\")\n        return value\n",
+        "score": 135,
+        "reason": "direct migrated API usage; validator function",
+        "token_estimate": 49
+      },
+      {
+        "path": "src/shop/orders.py",
+        "location": "28-36",
+        "symbol": "Order.total_matches_items",
+        "start_line": 28,
+        "end_line": 36,
+        "content": "    @root_validator\n    def total_matches_items(cls, values: dict[str, object]) -> dict[str, object]:\n        items = values.get(\"items\")\n        total = values.get(\"total_cents\")\n        if isinstance(items, list) and isinstance(total, int):\n            expected = sum(item.quantity * item.unit_price_cents for item in items)\n            if total != expected:\n                raise ValueError(\"total does not match items\")\n        return values\n",
+        "score": 135,
+        "reason": "direct migrated API usage; validator function",
+        "token_estimate": 111
+      },
+      {
+        "path": "src/shop/users.py",
+        "location": "13-17",
+        "symbol": "User.positive_id",
+        "start_line": 13,
+        "end_line": 17,
+        "content": "    @validator(\"id\")\n    def positive_id(cls, value: int) -> int:\n        if value <= 0:\n            raise ValueError(\"id must be positive\")\n        return value\n",
+        "score": 135,
+        "reason": "direct migrated API usage; validator function",
+        "token_estimate": 40
+      },
+      {
+        "path": "src/shop/users.py",
+        "location": "19-24",
+        "symbol": "User.normalized_email",
+        "start_line": 19,
+        "end_line": 24,
+        "content": "    @validator(\"email\")\n    def normalized_email(cls, value: str) -> str:\n        value = value.lower()\n        if \"@\" not in value or value.startswith(\"@\") or value.endswith(\"@\"):\n            raise ValueError(\"invalid email\")\n        return value\n",
+        "score": 135,
+        "reason": "direct migrated API usage; validator function",
+        "token_estimate": 62
+      },
+      {
+        "path": "pyproject.toml",
+        "location": "6-6",
+        "symbol": "dependency/configuration",
+        "start_line": 6,
+        "end_line": 6,
+        "content": "name = \"patchpilot-pydantic-v1-fixture\"\n",
+        "score": 120,
+        "reason": "Pydantic dependency declaration",
+        "token_estimate": 10
+      },
+      {
+        "path": "pyproject.toml",
+        "location": "9-9",
+        "symbol": "dependency/configuration",
+        "start_line": 9,
+        "end_line": 9,
+        "content": "dependencies = [\"pydantic==1.10.26\"]\n",
+        "score": 120,
+        "reason": "Pydantic dependency declaration",
+        "token_estimate": 9
+      },
+      {
+        "path": "src/shop/base.py",
+        "location": "3-3",
+        "symbol": "from pydantic import BaseModel",
+        "start_line": 3,
+        "end_line": 3,
+        "content": "from pydantic import BaseModel\n",
+        "score": 80,
+        "reason": "direct Pydantic import",
+        "token_estimate": 7
+      }
+    ],
+    "total_token_estimate": 835,
+    "max_files": 5,
+    "max_snippets": 18,
+    "max_context_tokens": 5000
+  },
+  "plan": {
+    "summary": "Pydantic v2 migration",
+    "planned_changes": [
+      {
+        "file": "pyproject.toml",
+        "symbol": "Pydantic models",
+        "reason": "v1 dependency or API",
+        "change": "Use v2 API",
+        "expected_effect": "Preserve behavior"
+      },
+      {
+        "file": "src/shop/base.py",
+        "symbol": "Pydantic models",
+        "reason": "v1 dependency or API",
+        "change": "Use v2 API",
+        "expected_effect": "Preserve behavior"
+      },
+      {
+        "file": "src/shop/users.py",
+        "symbol": "Pydantic models",
+        "reason": "v1 dependency or API",
+        "change": "Use v2 API",
+        "expected_effect": "Preserve behavior"
+      },
+      {
+        "file": "src/shop/orders.py",
+        "symbol": "Pydantic models",
+        "reason": "v1 dependency or API",
+        "change": "Use v2 API",
+        "expected_effect": "Preserve behavior"
+      },
+      {
+        "file": "tests/test_shop.py",
+        "symbol": "Pydantic models",
+        "reason": "v1 dependency or API",
+        "change": "Use v2 API",
+        "expected_effect": "Preserve behavior"
+      }
+    ],
+    "affected_files": [
+      "pyproject.toml",
+      "src/shop/base.py",
+      "src/shop/users.py",
+      "src/shop/orders.py",
+      "tests/test_shop.py"
+    ],
+    "risks": [
+      "validator semantics"
+    ],
+    "validation_plan": [
+      "pytest",
+      "mypy",
+      "ruff",
+      "runtime"
+    ]
+  },
+  "proposal": {
+    "changes": [
+      {
+        "path": "pyproject.toml",
+        "content": "[build-system]\nrequires = [\"setuptools>=68\"]\nbuild-backend = \"setuptools.build_meta\"\n\n[project]\nname = \"patchpilot-pydantic-v1-fixture\"\nversion = \"0.1.0\"\nrequires-python = \">=3.10\"\ndependencies = [\"pydantic>=2,<3\"]\n\n[tool.setuptools.packages.find]\nwhere = [\"src\"]\n\n[tool.pytest.ini_options]\ntestpaths = [\"tests\"]\n\n[tool.mypy]\npython_version = \"3.10\"\nstrict = true\nmypy_path = \"src\"\n\n[tool.ruff]\nline-length = 88\ntarget-version = \"py310\"\n"
+      },
+      {
+        "path": "src/shop/base.py",
+        "content": "\"\"\"Shared Pydantic v2 model configuration.\"\"\"\n\nfrom pydantic import BaseModel, ConfigDict\n\n\nclass ShopModel(BaseModel):\n    model_config = ConfigDict(str_strip_whitespace=True, extra=\"forbid\", validate_assignment=True)\n"
+      },
+      {
+        "path": "src/shop/users.py",
+        "content": "\"\"\"User model and field validation.\"\"\"\n\nfrom pydantic import field_validator\n\nfrom .base import ShopModel\n\n\nclass User(ShopModel):\n    id: int\n    email: str\n    name: str\n\n    @field_validator(\"id\")\n    @classmethod\n    def positive_id(cls, value: int) -> int:\n        if value <= 0:\n            raise ValueError(\"id must be positive\")\n        return value\n\n    @field_validator(\"email\")\n    @classmethod\n    def normalized_email(cls, value: str) -> str:\n        value = value.strip()\n        if \"@\" not in value or value.startswith(\"@\") or value.endswith(\"@\"):\n            raise ValueError(\"invalid email\")\n        return value\n"
+      },
+      {
+        "path": "src/shop/orders.py",
+        "content": "\"\"\"Order models with cross-field validation.\"\"\"\n\nfrom pydantic import field_validator, model_validator\nfrom typing_extensions import Self\n\nfrom .base import ShopModel\nfrom .users import User\n\n\nclass OrderItem(ShopModel):\n    sku: str\n    quantity: int\n    unit_price_cents: int\n\n    @field_validator(\"quantity\", \"unit_price_cents\")\n    @classmethod\n    def positive_amount(cls, value: int) -> int:\n        if value <= 0:\n            raise ValueError(\"amount must be positive\")\n        return value\n\n\nclass Order(ShopModel):\n    id: int\n    customer: User\n    items: list[OrderItem]\n    total_cents: int\n\n    @model_validator(mode=\"after\")\n    def total_matches_items(self) -> Self:\n        expected = sum(item.quantity * item.unit_price_cents for item in self.items)\n        if self.total_cents != expected:\n            raise ValueError(\"total does not match items\")\n        return self\n"
+      },
+      {
+        "path": "tests/test_shop.py",
+        "content": "import pytest\nfrom pydantic import ValidationError\n\nfrom shop import Order, OrderItem, User\n\n\ndef test_valid_user_and_normalization() -> None:\n    user = User(id=1, email=\" ADA@EXAMPLE.COM \", name=\" Ada \")\n    assert user.email == \"ada@example.com\"\n    assert user.name == \"Ada\"\n\n\n@pytest.mark.parametrize(\"data\", [\n    {\"id\": 0, \"email\": \"a@example.com\", \"name\": \"A\"},\n    {\"id\": 1, \"email\": \"invalid\", \"name\": \"A\"},\n])\ndef test_invalid_user_rejected(data: dict[str, object]) -> None:\n    with pytest.raises(ValidationError):\n        User.model_validate(data)\n\n\ndef test_shared_config_rejects_extra_and_validates_assignment() -> None:\n    with pytest.raises(ValidationError):\n        User.model_validate({\"id\": 1, \"email\": \"a@example.com\", \"name\": \"A\", \"unknown\": True})\n    user = User(id=1, email=\"a@example.com\", name=\"A\")\n    with pytest.raises(ValidationError):\n        user.id = -1\n\n\ndef test_item_field_validation() -> None:\n    with pytest.raises(ValidationError):\n        OrderItem(sku=\"x\", quantity=0, unit_price_cents=100)\n\n\ndef test_nested_parse_and_serialization() -> None:\n    order = Order.model_validate({\n        \"id\": 10,\n        \"customer\": {\"id\": 1, \"email\": \"ADA@EXAMPLE.COM\", \"name\": \" Ada \"},\n        \"items\": [\n            {\"sku\": \"pen\", \"quantity\": 2, \"unit_price_cents\": 150},\n            {\"sku\": \"book\", \"quantity\": 1, \"unit_price_cents\": 700},\n        ],\n        \"total_cents\": 1000,\n    })\n    assert isinstance(order.customer, User)\n    assert isinstance(order.items[0], OrderItem)\n    assert order.model_dump()[\"customer\"] == {\n        \"id\": 1, \"email\": \"ada@example.com\", \"name\": \"Ada\"\n    }\n    assert order.model_dump()[\"items\"][0][\"sku\"] == \"pen\"\n\n\ndef test_order_total_matches_multiple_items() -> None:\n    with pytest.raises(ValidationError, match=\"total does not match items\"):\n        Order.model_validate({\n            \"id\": 10,\n            \"customer\": {\"id\": 1, \"email\": \"a@example.com\", \"name\": \"A\"},\n            \"items\": [{\"sku\": \"pen\", \"quantity\": 2, \"unit_price_cents\": 150}],\n            \"total_cents\": 299,\n        })\n"
+      }
+    ],
+    "rationale": "Replace Pydantic v1 APIs"
+  },
+  "patch": {
+    "pre_snapshot": "d966f89f685bb18807246710efbd64a26ad03fa5",
+    "post_snapshot": "5b2f44df43c7573eb54844b2183c536a86192e80",
+    "changed_files": [
+      "pyproject.toml",
+      "src/shop/base.py",
+      "src/shop/orders.py",
+      "src/shop/users.py",
+      "tests/test_shop.py"
+    ],
+    "diff": "diff --git a/pyproject.toml b/pyproject.toml\nindex d6964d8..90e7856 100644\n--- a/pyproject.toml\n+++ b/pyproject.toml\n@@ -6,7 +6,7 @@ build-backend = \"setuptools.build_meta\"\n name = \"patchpilot-pydantic-v1-fixture\"\n version = \"0.1.0\"\n requires-python = \">=3.10\"\n-dependencies = [\"pydantic==1.10.26\"]\n+dependencies = [\"pydantic>=2,<3\"]\n \n [tool.setuptools.packages.find]\n where = [\"src\"]\ndiff --git a/src/shop/base.py b/src/shop/base.py\nindex f6c9fd3..d1d1e74 100644\n--- a/src/shop/base.py\n+++ b/src/shop/base.py\n@@ -1,10 +1,7 @@\n-\"\"\"Shared Pydantic v1 model configuration.\"\"\"\n+\"\"\"Shared Pydantic v2 model configuration.\"\"\"\n \n-from pydantic import BaseModel\n+from pydantic import BaseModel, ConfigDict\n \n \n class ShopModel(BaseModel):\n-    class Config:\n-        anystr_strip_whitespace = True\n-        extra = \"forbid\"\n-        validate_assignment = True\n+    model_config = ConfigDict(str_strip_whitespace=True, extra=\"forbid\", validate_assignment=True)\ndiff --git a/src/shop/orders.py b/src/shop/orders.py\nindex c090912..9df6304 100644\n--- a/src/shop/orders.py\n+++ b/src/shop/orders.py\n@@ -1,7 +1,7 @@\n \"\"\"Order models with cross-field validation.\"\"\"\n \n-\n-from pydantic import root_validator, validator\n+from pydantic import field_validator, model_validator\n+from typing_extensions import Self\n \n from .base import ShopModel\n from .users import User\n@@ -12,7 +12,8 @@ class OrderItem(ShopModel):\n     quantity: int\n     unit_price_cents: int\n \n-    @validator(\"quantity\", \"unit_price_cents\")\n+    @field_validator(\"quantity\", \"unit_price_cents\")\n+    @classmethod\n     def positive_amount(cls, value: int) -> int:\n         if value <= 0:\n             raise ValueError(\"amount must be positive\")\n@@ -25,12 +26,9 @@ class Order(ShopModel):\n     items: list[OrderItem]\n     total_cents: int\n \n-    @root_validator\n-    def total_matches_items(cls, values: dict[str, object]) -> dict[str, object]:\n-        items = values.get(\"items\")\n-        total = values.get(\"total_cents\")\n-        if isinstance(items, list) and isinstance(total, int):\n-            expected = sum(item.quantity * item.unit_price_cents for item in items)\n-            if total != expected:\n-                raise ValueError(\"total does not match items\")\n-        return values\n+    @model_validator(mode=\"after\")\n+    def total_matches_items(self) -> Self:\n+        expected = sum(item.quantity * item.unit_price_cents for item in self.items)\n+        if self.total_cents != expected:\n+            raise ValueError(\"total does not match items\")\n+        return self\ndiff --git a/src/shop/users.py b/src/shop/users.py\nindex 44edd84..7f45244 100644\n--- a/src/shop/users.py\n+++ b/src/shop/users.py\n@@ -1,6 +1,6 @@\n \"\"\"User model and field validation.\"\"\"\n \n-from pydantic import validator\n+from pydantic import field_validator\n \n from .base import ShopModel\n \n@@ -10,13 +10,15 @@ class User(ShopModel):\n     email: str\n     name: str\n \n-    @validator(\"id\")\n+    @field_validator(\"id\")\n+    @classmethod\n     def positive_id(cls, value: int) -> int:\n         if value <= 0:\n             raise ValueError(\"id must be positive\")\n         return value\n \n-    @validator(\"email\")\n+    @field_validator(\"email\")\n+    @classmethod\n     def normalized_email(cls, value: str) -> str:\n         value = value.lower()\n         if \"@\" not in value or value.startswith(\"@\") or value.endswith(\"@\"):\ndiff --git a/tests/test_shop.py b/tests/test_shop.py\nindex 66824c5..7f3c256 100644\n--- a/tests/test_shop.py\n+++ b/tests/test_shop.py\n@@ -16,12 +16,12 @@ def test_valid_user_and_normalization() -> None:\n ])\n def test_invalid_user_rejected(data: dict[str, object]) -> None:\n     with pytest.raises(ValidationError):\n-        User.parse_obj(data)\n+        User.model_validate(data)\n \n \n def test_shared_config_rejects_extra_and_validates_assignment() -> None:\n     with pytest.raises(ValidationError):\n-        User.parse_obj({\"id\": 1, \"email\": \"a@example.com\", \"name\": \"A\", \"unknown\": True})\n+        User.model_validate({\"id\": 1, \"email\": \"a@example.com\", \"name\": \"A\", \"unknown\": True})\n     user = User(id=1, email=\"a@example.com\", name=\"A\")\n     with pytest.raises(ValidationError):\n         user.id = -1\n@@ -33,7 +33,7 @@ def test_item_field_validation() -> None:\n \n \n def test_nested_parse_and_serialization() -> None:\n-    order = Order.parse_obj({\n+    order = Order.model_validate({\n         \"id\": 10,\n         \"customer\": {\"id\": 1, \"email\": \"ADA@EXAMPLE.COM\", \"name\": \" Ada \"},\n         \"items\": [\n@@ -44,15 +44,15 @@ def test_nested_parse_and_serialization() -> None:\n     })\n     assert isinstance(order.customer, User)\n     assert isinstance(order.items[0], OrderItem)\n-    assert order.dict()[\"customer\"] == {\n+    assert order.model_dump()[\"customer\"] == {\n         \"id\": 1, \"email\": \"ada@example.com\", \"name\": \"Ada\"\n     }\n-    assert order.dict()[\"items\"][0][\"sku\"] == \"pen\"\n+    assert order.model_dump()[\"items\"][0][\"sku\"] == \"pen\"\n \n \n def test_order_total_matches_multiple_items() -> None:\n     with pytest.raises(ValidationError, match=\"total does not match items\"):\n-        Order.parse_obj({\n+        Order.model_validate({\n             \"id\": 10,\n             \"customer\": {\"id\": 1, \"email\": \"a@example.com\", \"name\": \"A\"},\n             \"items\": [{\"sku\": \"pen\", \"quantity\": 2, \"unit_price_cents\": 150}],\n",
+    "sha256": "5ed9750117a48a4ad603eed470d7b39af9f57c9df06e8c7c565148f63aa6a6dd"
+  },
+  "sandbox_verification": {
+    "passed": true,
+    "checks": [
+      {
+        "name": "Pydantic v2 migration",
+        "command": [],
+        "exit_code": 0,
+        "output": "dependency and v1 API scan"
+      },
+      {
+        "name": "installed Pydantic v2",
+        "command": [
+          "/tmp/patchpilot-pydantic2-venv/bin/python",
+          "-c",
+          "import pydantic; assert int(pydantic.VERSION.split('.')[0]) == 2"
+        ],
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "name": "pytest",
+        "command": [
+          "/tmp/patchpilot-pydantic2-venv/bin/python",
+          "-m",
+          "pytest",
+          "-q",
+          "-p",
+          "no:cacheprovider"
+        ],
+        "exit_code": 0,
+        "output": ".......                                                                  [100%]\n7 passed in 0.21s\n"
+      },
+      {
+        "name": "mypy",
+        "command": [
+          "/tmp/patchpilot-pydantic2-venv/bin/python",
+          "-m",
+          "mypy",
+          "src",
+          "tests"
+        ],
+        "exit_code": 0,
+        "output": "Success: no issues found in 5 source files\n"
+      },
+      {
+        "name": "ruff",
+        "command": [
+          "/tmp/patchpilot-pydantic2-venv/bin/python",
+          "-m",
+          "ruff",
+          "check",
+          "src",
+          "tests"
+        ],
+        "exit_code": 0,
+        "output": "All checks passed!\n"
+      },
+      {
+        "name": "runtime/import",
+        "command": [
+          "/tmp/patchpilot-pydantic2-venv/bin/python",
+          "-c",
+          "import shop; assert shop.User and shop.Order"
+        ],
+        "exit_code": 0,
+        "output": ""
+      }
+    ]
+  },
+  "approval": {
+    "decision": "APPROVE",
+    "actor": "simulated-human",
+    "timestamp": "2026-09-20T23:17:02.304771+00:00"
+  },
+  "target_verification": {
+    "passed": true,
+    "checks": [
+      {
+        "name": "Pydantic v2 migration",
+        "command": [],
+        "exit_code": 0,
+        "output": "dependency and v1 API scan"
+      },
+      {
+        "name": "installed Pydantic v2",
+        "command": [
+          "/tmp/patchpilot-pydantic2-venv/bin/python",
+          "-c",
+          "import pydantic; assert int(pydantic.VERSION.split('.')[0]) == 2"
+        ],
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "name": "pytest",
+        "command": [
+          "/tmp/patchpilot-pydantic2-venv/bin/python",
+          "-m",
+          "pytest",
+          "-q",
+          "-p",
+          "no:cacheprovider"
+        ],
+        "exit_code": 0,
+        "output": ".......                                                                  [100%]\n7 passed in 0.20s\n"
+      },
+      {
+        "name": "mypy",
+        "command": [
+          "/tmp/patchpilot-pydantic2-venv/bin/python",
+          "-m",
+          "mypy",
+          "src",
+          "tests"
+        ],
+        "exit_code": 0,
+        "output": "Success: no issues found in 5 source files\n"
+      },
+      {
+        "name": "ruff",
+        "command": [
+          "/tmp/patchpilot-pydantic2-venv/bin/python",
+          "-m",
+          "ruff",
+          "check",
+          "src",
+          "tests"
+        ],
+        "exit_code": 0,
+        "output": "All checks passed!\n"
+      },
+      {
+        "name": "runtime/import",
+        "command": [
+          "/tmp/patchpilot-pydantic2-venv/bin/python",
+          "-c",
+          "import shop; assert shop.User and shop.Order"
+        ],
+        "exit_code": 0,
+        "output": ""
+      }
+    ]
+  },
+  "target_branch": "patchpilot/pydantic-v2-4e9cc437",
+  "repair_attempts": [
+    {
+      "attempt_number": 2,
+      "failure_analysis": {
+        "failure_type": "migration_behavior_regression",
+        "likely_root_cause": "email normalizer no longer lowercases",
+        "supporting_evidence": [
+          "test_valid_user_and_normalization fails"
+        ],
+        "proposed_repair": "restore lowercase normalization",
+        "files_to_modify": [
+          "src/shop/users.py"
+        ],
+        "reason_for_each_file": [
+          {
+            "file": "src/shop/users.py",
+            "reason": "email normalization regression",
+            "supporting_evidence": "failing email assertion",
+            "expected_effect": "preserve lowercase email",
+            "required_verification": "full suite"
+          }
+        ],
+        "additional_context_needed": [],
+        "confidence": 0.95
+      },
+      "repair_decision_path": "deterministic",
+      "approval_reason": "all files exist in supported scope; planned files or explicit failing-output paths support modification",
+      "reviewer_decisions": [],
+      "stable_snapshot_id": "d966f89f685bb18807246710efbd64a26ad03fa5",
+      "candidate_checkpoint_id": "5b2f44df43c7573eb54844b2183c536a86192e80",
+      "repair_diff": "diff --git a/src/shop/users.py b/src/shop/users.py\nindex d434f06..7f45244 100644\n--- a/src/shop/users.py\n+++ b/src/shop/users.py\n@@ -20,7 +20,7 @@ class User(ShopModel):\n     @field_validator(\"email\")\n     @classmethod\n     def normalized_email(cls, value: str) -> str:\n-        value = value.strip()\n+        value = value.lower()\n         if \"@\" not in value or value.startswith(\"@\") or value.endswith(\"@\"):\n             raise ValueError(\"invalid email\")\n         return value\n",
+      "proposal": {
+        "changes": [
+          {
+            "path": "src/shop/users.py",
+            "content": "\"\"\"User model and field validation.\"\"\"\n\nfrom pydantic import field_validator\n\nfrom .base import ShopModel\n\n\nclass User(ShopModel):\n    id: int\n    email: str\n    name: str\n\n    @field_validator(\"id\")\n    @classmethod\n    def positive_id(cls, value: int) -> int:\n        if value <= 0:\n            raise ValueError(\"id must be positive\")\n        return value\n\n    @field_validator(\"email\")\n    @classmethod\n    def normalized_email(cls, value: str) -> str:\n        value = value.lower()\n        if \"@\" not in value or value.startswith(\"@\") or value.endswith(\"@\"):\n            raise ValueError(\"invalid email\")\n        return value\n"
+          }
+        ],
+        "rationale": "repair email normalization"
+      },
+      "verification_before": {
+        "passed": false,
+        "checks": [
+          {
+            "name": "Pydantic v2 migration",
+            "command": [],
+            "exit_code": 0,
+            "output": "dependency and v1 API scan"
+          },
+          {
+            "name": "installed Pydantic v2",
+            "command": [
+              "/tmp/patchpilot-pydantic2-venv/bin/python",
+              "-c",
+              "import pydantic; assert int(pydantic.VERSION.split('.')[0]) == 2"
+            ],
+            "exit_code": 0,
+            "output": ""
+          },
+          {
+            "name": "pytest",
+            "command": [
+              "/tmp/patchpilot-pydantic2-venv/bin/python",
+              "-m",
+              "pytest",
+              "-q",
+              "-p",
+              "no:cacheprovider"
+            ],
+            "exit_code": 1,
+            "output": "F....F.                                                                  [100%]\n=================================== FAILURES ===================================\n______________________ test_valid_user_and_normalization _______________________\n\n    def test_valid_user_and_normalization() -> None:\n        user = User(id=1, email=\" ADA@EXAMPLE.COM \", name=\" Ada \")\n>       assert user.email == \"ada@example.com\"\nE       AssertionError: assert 'ADA@EXAMPLE.COM' == 'ada@example.com'\nE         \nE         - ada@example.com\nE         + ADA@EXAMPLE.COM\n\ntests/test_shop.py:9: AssertionError\n_____________________ test_nested_parse_and_serialization ______________________\n\n    def test_nested_parse_and_serialization() -> None:\n        order = Order.model_validate({\n            \"id\": 10,\n            \"customer\": {\"id\": 1, \"email\": \"ADA@EXAMPLE.COM\", \"name\": \" Ada \"},\n            \"items\": [\n                {\"sku\": \"pen\", \"quantity\": 2, \"unit_price_cents\": 150},\n                {\"sku\": \"book\", \"quantity\": 1, \"unit_price_cents\": 700},\n            ],\n            \"total_cents\": 1000,\n        })\n        assert isinstance(order.customer, User)\n        assert isinstance(order.items[0], OrderItem)\n>       assert order.model_dump()[\"customer\"] == {\n            \"id\": 1, \"email\": \"ada@example.com\", \"name\": \"Ada\"\n        }\nE       AssertionError: assert {'id': 1, 'em...'name': 'Ada'} == {'id': 1, 'em...'name': 'Ada'}\nE         \nE         Omitting 2 identical items, use -vv to show\nE         Differing items:\nE         {'email': 'ADA@EXAMPLE.COM'} != {'email': 'ada@example.com'}\nE         Use -v to get more diff\n\ntests/test_shop.py:47: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_shop.py::test_valid_user_and_normalization - AssertionError...\nFAILED tests/test_shop.py::test_nested_parse_and_serialization - AssertionErr...\n2 failed, 5 passed in 0.16s\n"
+          },
+          {
+            "name": "mypy",
+            "command": [
+              "/tmp/patchpilot-pydantic2-venv/bin/python",
+              "-m",
+              "mypy",
+              "src",
+              "tests"
+            ],
+            "exit_code": 0,
+            "output": "Success: no issues found in 5 source files\n"
+          },
+          {
+            "name": "ruff",
+            "command": [
+              "/tmp/patchpilot-pydantic2-venv/bin/python",
+              "-m",
+              "ruff",
+              "check",
+              "src",
+              "tests"
+            ],
+            "exit_code": 0,
+            "output": "All checks passed!\n"
+          },
+          {
+            "name": "runtime/import",
+            "command": [
+              "/tmp/patchpilot-pydantic2-venv/bin/python",
+              "-c",
+              "import shop; assert shop.User and shop.Order"
+            ],
+            "exit_code": 0,
+            "output": ""
+          }
+        ]
+      },
+      "verification_after": {
+        "passed": true,
+        "checks": [
+          {
+            "name": "Pydantic v2 migration",
+            "command": [],
+            "exit_code": 0,
+            "output": "dependency and v1 API scan"
+          },
+          {
+            "name": "installed Pydantic v2",
+            "command": [
+              "/tmp/patchpilot-pydantic2-venv/bin/python",
+              "-c",
+              "import pydantic; assert int(pydantic.VERSION.split('.')[0]) == 2"
+            ],
+            "exit_code": 0,
+            "output": ""
+          },
+          {
+            "name": "pytest",
+            "command": [
+              "/tmp/patchpilot-pydantic2-venv/bin/python",
+              "-m",
+              "pytest",
+              "-q",
+              "-p",
+              "no:cacheprovider"
+            ],
+            "exit_code": 0,
+            "output": ".......                                                                  [100%]\n7 passed in 0.21s\n"
+          },
+          {
+            "name": "mypy",
+            "command": [
+              "/tmp/patchpilot-pydantic2-venv/bin/python",
+              "-m",
+              "mypy",
+              "src",
+              "tests"
+            ],
+            "exit_code": 0,
+            "output": "Success: no issues found in 5 source files\n"
+          },
+          {
+            "name": "ruff",
+            "command": [
+              "/tmp/patchpilot-pydantic2-venv/bin/python",
+              "-m",
+              "ruff",
+              "check",
+              "src",
+              "tests"
+            ],
+            "exit_code": 0,
+            "output": "All checks passed!\n"
+          },
+          {
+            "name": "runtime/import",
+            "command": [
+              "/tmp/patchpilot-pydantic2-venv/bin/python",
+              "-c",
+              "import shop; assert shop.User and shop.Order"
+            ],
+            "exit_code": 0,
+            "output": ""
+          }
+        ]
+      },
+      "degraded": false,
+      "degraded_reason": null,
+      "rollback_result": null
+    }
+  ],
+  "context_expansions": [],
+  "failure_analyses": [
+    {
+      "failure_type": "migration_behavior_regression",
+      "likely_root_cause": "email normalizer no longer lowercases",
+      "supporting_evidence": [
+        "test_valid_user_and_normalization fails"
+      ],
+      "proposed_repair": "restore lowercase normalization",
+      "files_to_modify": [
+        "src/shop/users.py"
+      ],
+      "reason_for_each_file": [
+        {
+          "file": "src/shop/users.py",
+          "reason": "email normalization regression",
+          "supporting_evidence": "failing email assertion",
+          "expected_effect": "preserve lowercase email",
+          "required_verification": "full suite"
+        }
+      ],
+      "additional_context_needed": [],
+      "confidence": 0.95
+    }
+  ],
+  "review_history": [],
+  "repair_decisions": [
+    "deterministic: all files exist in supported scope; planned files or explicit failing-output paths support modification"
+  ],
+  "final_status": "READY_FOR_PR",
+  "started_at": "2026-09-20T23:16:41.572268+00:00",
+  "ended_at": "2026-09-20T23:17:12.009069+00:00"
+}

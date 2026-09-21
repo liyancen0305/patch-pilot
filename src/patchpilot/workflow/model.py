@@ -55,6 +55,9 @@ class SolBackend:
         roles = {
             "Migration Planner": "Plan only requested migration changes; do not generate code.",
             "Patch Generator": "Generate only the planned migration patch.",
+            "Failure Analyzer": "Analyze verification failures using evidence; do not approve or edit code.",
+            "Change Reviewer": "Independently review the proposed repair and decide approval, rejection, or more evidence.",
+            "Repair Generator": "Generate only the approved repair files; preserve regression behavior.",
         }
         body = json.dumps({
             "model": self.model,

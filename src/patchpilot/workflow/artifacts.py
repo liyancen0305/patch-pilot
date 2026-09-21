@@ -29,6 +29,11 @@ def export_run(store: RunStore, run_id: str, artifact_parent: Path) -> Path:
                         ("target_verification", run.target_verification)):
         if value is not None:
             write(f"{name}.json", json.loads(value.json()))
+    if run.prompt_name == "03_failure_repair_path":
+        write("failure_analyses.json", [json.loads(item.json()) for item in run.failure_analyses])
+        write("review_history.json", [json.loads(item.json()) for item in run.review_history])
+        write("context_expansions.json", [json.loads(item.json()) for item in run.context_expansions])
+        write("repair_attempts.json", [json.loads(item.json()) for item in run.repair_attempts])
     if run.patch is not None and run.sandbox_verification and run.sandbox_verification.passed:
         (destination / "verified.patch").write_text(run.patch.diff)
         write("verified_patch.json", {"sha256": run.patch.sha256})

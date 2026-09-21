@@ -18,9 +18,27 @@ ALLOWED: dict[State | None, frozenset[State]] = {
     **{a: frozenset({b}) for a, b in itertools.pairwise(HAPPY_PATH)},
     State.READY_FOR_PR: frozenset(),
 }
-for _state in (State.PLANNING, State.PATCH_GENERATING):
+ALLOWED[State.VERIFYING_SANDBOX] |= {State.ANALYZING_FAILURE, State.NEEDS_HUMAN_REVIEW}
+ALLOWED.update({
+    State.ANALYZING_FAILURE: frozenset({State.REPAIR_PROPOSED, State.NEEDS_HUMAN_REVIEW}),
+    State.REPAIR_PROPOSED: frozenset({State.GATHERING_ADDITIONAL_CONTEXT,
+                                     State.REPAIR_APPROVED, State.AWAITING_REVIEW}),
+    State.GATHERING_ADDITIONAL_CONTEXT: frozenset({State.ANALYZING_FAILURE,
+                                                   State.AWAITING_REVIEW}),
+    State.AWAITING_REVIEW: frozenset({State.REPAIR_APPROVED, State.REPAIR_REJECTED,
+                                     State.GATHERING_ADDITIONAL_CONTEXT,
+                                     State.NEEDS_HUMAN_REVIEW}),
+    State.REPAIR_APPROVED: frozenset({State.REPAIRING}),
+    State.REPAIR_REJECTED: frozenset({State.ANALYZING_FAILURE, State.NEEDS_HUMAN_REVIEW}),
+    State.REPAIRING: frozenset({State.VERIFYING_SANDBOX}),
+    State.NEEDS_HUMAN_REVIEW: frozenset(),
+})
+for _state in (State.PLANNING, State.PATCH_GENERATING, State.ANALYZING_FAILURE,
+               State.AWAITING_REVIEW, State.REPAIRING):
     ALLOWED[_state] |= {State.MODEL_ERROR}
-for _state in HAPPY_PATH[:-1]:
+for _state in (*HAPPY_PATH[:-1], State.ANALYZING_FAILURE, State.REPAIR_PROPOSED,
+               State.GATHERING_ADDITIONAL_CONTEXT, State.AWAITING_REVIEW,
+               State.REPAIR_APPROVED, State.REPAIR_REJECTED, State.REPAIRING):
     ALLOWED[_state] |= {State.TOOL_ERROR, State.ENVIRONMENT_ERROR, State.FAILED_SYSTEM}
 for _state in (State.MODEL_ERROR, State.TOOL_ERROR, State.ENVIRONMENT_ERROR, State.FAILED_SYSTEM):
     ALLOWED[_state] = frozenset()

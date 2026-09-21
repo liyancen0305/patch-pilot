@@ -36,6 +36,17 @@ def test_final_prompt_documents_are_self_contained() -> None:
         assert requirement in second
 
 
+def test_prompt3_contract_is_self_contained() -> None:
+    third = (ROOT / "docs/prompts/03_failure_repair_path.md").read_text()
+    assert third.startswith("Prompt: 03_failure_repair_path\nVersion: v1\n")
+    for requirement in ("Maximum 3 Total Attempts", "ANALYZING_FAILURE",
+                        "GATHERING_ADDITIONAL_CONTEXT", "NEEDS_HUMAN_REVIEW",
+                        "FailureAnalyzer", "ReviewDecision", "candidate checkpoint",
+                        "last verified stable snapshot", "rollback", "max_context_tokens",
+                        "Live Sol execution remains deferred"):
+        assert requirement in third
+
+
 def test_new_version_and_legacy_run_loading(tmp_path: Path) -> None:
     store = RunStore(tmp_path / "runs.db")
     run = RunRecord(run_id="new", request=MigrationRequest(repository="example"),

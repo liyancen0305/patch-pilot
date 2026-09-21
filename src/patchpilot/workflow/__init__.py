@@ -1,4 +1,4 @@
-"""Prompt 2 happy path workflow."""
+"""Prompt 2 happy path and Prompt 3 bounded repair workflow."""
 
 from .runner import VerificationRunner, Workflow
 from .store import RunStore

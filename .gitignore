@@ -12,3 +12,5 @@ artifacts/controlled-*/target/
 artifacts/controlled-*/runs.db
 artifacts/controlled-*/verified.patch
 artifacts/controlled-*/sandbox-snapshot.bundle
+
+artifacts/runs/

@@ -1,0 +1,24 @@
+[
+  {
+    "failure_type": "migration_behavior_regression",
+    "likely_root_cause": "email normalizer no longer lowercases",
+    "supporting_evidence": [
+      "test_valid_user_and_normalization fails"
+    ],
+    "proposed_repair": "restore lowercase normalization",
+    "files_to_modify": [
+      "src/shop/users.py"
+    ],
+    "reason_for_each_file": [
+      {
+        "file": "src/shop/users.py",
+        "reason": "email normalization regression",
+        "supporting_evidence": "failing email assertion",
+        "expected_effect": "preserve lowercase email",
+        "required_verification": "full suite"
+      }
+    ],
+    "additional_context_needed": [],
+    "confidence": 0.95
+  }
+]

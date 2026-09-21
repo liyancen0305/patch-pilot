@@ -1,0 +1,20 @@
+{
+  "run_id": "86f17c949859406c86315b9a686e312a",
+  "migration_goal": "Upgrade Pydantic v1 to Pydantic v2",
+  "model": "controlled-repair-test-double",
+  "prompt_version": "v1",
+  "final_state": "READY_FOR_PR",
+  "sandbox_verification_passed": true,
+  "approval": "APPROVE",
+  "target_branch": "patchpilot/pydantic-v2-86f17c94",
+  "target_verification_passed": true,
+  "attempt_count": 2,
+  "total_model_calls": 4,
+  "input_tokens": 100,
+  "output_tokens": 80,
+  "estimated_cost_usd": 0,
+  "model_latency_seconds": 0.010784882001644291,
+  "end_to_end_latency_seconds": 29.622854,
+  "verified_patch_sha256": "5ed9750117a48a4ad603eed470d7b39af9f57c9df06e8c7c565148f63aa6a6dd",
+  "final_status": "READY_FOR_PR"
+}

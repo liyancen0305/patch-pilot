@@ -39,3 +39,19 @@ the verified sandbox patch to a new branch after approval, and stores run record
 SQLite. Use `DECLINE` to stop at the approval gate. Set
 `PATCHPILOT_SOL_INPUT_USD_PER_M` and `PATCHPILOT_SOL_OUTPUT_USD_PER_M` to record cost
 estimates using configured per-million-token rates.
+
+## Part 3 bounded repair
+
+Prompt 3 extends the same workflow with failure analysis, conditional independent review,
+and at most three total verification attempts. Repairs stay in the sandbox until full
+verification passes. Add `--repair` to the live command to enable this path.
+
+The acceptance run uses a controlled model with real sandbox and Pydantic v2
+verification, so it needs no OpenAI API key:
+
+```bash
+.venv/bin/python scripts/run_controlled_repair.py
+```
+
+Run evidence is written under `artifacts/controlled-repair-*/runs/<run_id>/`.
+Live Sol quality, cost, and latency evaluation is deferred.

@@ -101,6 +101,16 @@ class Sandbox:
         self._git("reset", "--hard", stable)
         self._git("clean", "-fd")
 
+    def restore_checkpoint(self, revision: str) -> str:
+        """Restore a repair's starting commit without promoting it to stable."""
+        resolved = self._git("rev-parse", "--verify", f"{revision}^{{commit}}").strip()
+        if resolved != revision:
+            raise ValueError("repair checkpoint must be a full commit ID")
+        self._git("merge-base", "--is-ancestor", revision, "HEAD")
+        self._git("reset", "--hard", revision)
+        self._git("clean", "-fd")
+        return self._git("rev-parse", "HEAD").strip()
+
     def reset(self) -> None:
         """Restore the canonical baseline within this sandbox."""
         self._set_stable(self.original_snapshot)

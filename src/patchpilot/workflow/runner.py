@@ -1,4 +1,4 @@
-"""Prompt 2 happy path orchestrator."""
+"""Prompt 2 happy path and Prompt 3 bounded repair orchestrator."""
 
 import hashlib
 import re
@@ -17,13 +17,27 @@ from patchpilot.sandbox import Sandbox
 from .artifacts import export_run
 from .guardrails import validate_test_change
 from .model import ModelClient
-from .repository import analyze, capability, select_context
+from .repair import (
+    ChangeReviewer,
+    FailureAnalyzer,
+    RepairGenerator,
+    degradation_reason,
+    degraded,
+    direct_approval_reason,
+    failure_text,
+    relevant_code,
+    validate_analysis,
+)
+from .repository import analyze, capability, expand_context, select_context
 from .schema import (
     ApprovalDecision,
+    ContextExpansionRecord,
     MigrationPlan,
     MigrationRequest,
     PatchProposal,
     PatchResult,
+    RepairAttemptRecord,
+    ReviewDecision,
     RunRecord,
     State,
     VerificationCheck,
@@ -121,7 +135,12 @@ class VerificationRunner:
 
 class Workflow:
     def __init__(self, store: RunStore, client: ModelClient,
-                 verifier: VerificationRunner) -> None:
+                 verifier: VerificationRunner, repair_enabled: bool = False,
+                 max_context_expansions: int = 2) -> None:
+        if max_context_expansions < 0:
+            raise ValueError("context expansion limit cannot be negative")
+        self.max_context_expansions = max_context_expansions
+        self.repair_enabled = repair_enabled
         self.store = store
         self.client = client
         self.verifier = verifier
@@ -157,6 +176,237 @@ class Workflow:
             self.store.save(run)
             raise
 
+    def _context_exhausted(self, run: RunRecord, requested: list[str],
+                           reason: str, component: str) -> None:
+        run.unresolved_context_request = requested
+        run.reason_for_escalation = reason
+        self.store.save(run)
+        self.store.move(run, State.NEEDS_HUMAN_REVIEW,
+                        "context_expansion_exhausted", component)
+        run.final_status = State.NEEDS_HUMAN_REVIEW.value
+        run.ended_at = datetime.now(timezone.utc).isoformat()
+        self.store.save(run)
+
+    def _repair_until_verified(self, run: RunRecord, sandbox: Sandbox) -> bool:
+        assert run.plan is not None and run.analysis is not None
+        assert run.context is not None and run.patch is not None
+        assert run.sandbox_verification is not None
+        analyzer = FailureAnalyzer(self.client)
+        reviewer = ChangeReviewer(self.client)
+        generator = RepairGenerator(self.client)
+        rejections = 0
+        while True:
+            before = run.sandbox_verification
+            if run.attempt_number >= 3:
+                self.store.move(run, State.NEEDS_HUMAN_REVIEW, "attempt_limit_reached", "Orchestrator")
+                run.final_status = State.NEEDS_HUMAN_REVIEW.value
+                run.ended_at = datetime.now(timezone.utc).isoformat()
+                self.store.save(run)
+                return False
+            if run.current_state == State.VERIFYING_SANDBOX:
+                self.store.move(run, State.ANALYZING_FAILURE, "code_verification_failed", "Verification Runner")
+            current_diff = git(sandbox.path, "diff", sandbox.original_snapshot, "HEAD")
+            affected = list(dict.fromkeys([*run.patch.changed_files,
+                                           *(run.plan.affected_files if run.plan else [])]))
+            original_code = {name: sandbox.original_file(name)[:12000] for name in affected
+                             if (sandbox.path / name).is_file()}
+            payload: dict[str, object] = {
+                "migration_goal": run.request.migration_goal,
+                "migration_plan": run.plan.dict(), "attempt_number": run.attempt_number,
+                "current_diff": current_diff,
+                "original_relevant_code": original_code,
+                "current_relevant_code": relevant_code(sandbox.path, affected),
+                "failing_tests_stdout_stderr_stack_trace": failure_text(before),
+                "verification_result": before.dict(),
+                "previous_attempts": [item.dict() for item in run.repair_attempts],
+                "selected_context": [item.dict() for item in run.context.items],
+                "context_files": [item.path for item in run.context.items],
+            }
+            try:
+                analysis = analyzer.analyze(run.run_id, payload)
+                validate_analysis(analysis)
+                run.failure_analyses.append(analysis)
+                self.store.save(run)
+            except (RuntimeError, ValueError):
+                if run.current_state != State.MODEL_ERROR:
+                    self.store.move(run, State.MODEL_ERROR, "invalid_failure_analysis", "Model Client")
+                    run.final_status = State.MODEL_ERROR.value
+                    run.ended_at = datetime.now(timezone.utc).isoformat()
+                    self.store.save(run)
+                raise
+            if analysis.additional_context_needed and run.expansion_count >= run.expansion_limit:
+                self._context_exhausted(run, analysis.additional_context_needed,
+                                        "Failure Analyzer requested evidence after expansion limit",
+                                        "Failure Analyzer")
+                return False
+            self.store.move(run, State.REPAIR_PROPOSED, "failure_analyzed", "Failure Analyzer")
+            if analysis.additional_context_needed:
+                self.store.move(run, State.GATHERING_ADDITIONAL_CONTEXT,
+                                "analysis_requested_context", "Context Manager")
+                previous = run.context
+                run.context = expand_context(sandbox.path, run.analysis, previous,
+                                             failure_text(before), run.patch.changed_files,
+                                             analysis.additional_context_needed)
+                run.context_expansions.append(ContextExpansionRecord(
+                    attempt_number=run.attempt_number, previous_context=previous,
+                    new_context=run.context,
+                    expansion_reason="Failure Analyzer requested: " +
+                                     ", ".join(analysis.additional_context_needed)))
+                self.store.save(run)
+                run.expansion_count += 1
+                self.store.save(run)
+                self.store.move(run, State.ANALYZING_FAILURE,
+                                "context_expanded", "Context Manager")
+                continue
+            direct_reason = direct_approval_reason(sandbox.path, analysis, run.plan, before, run.analysis)
+            path = "deterministic" if direct_reason else "reviewer"
+            decisions = []
+            if direct_reason:
+                run.repair_decisions.append("deterministic: " + direct_reason)
+                self.store.save(run)
+                self.store.move(run, State.REPAIR_APPROVED, "objective_evidence", "Orchestrator")
+            else:
+                self.store.move(run, State.AWAITING_REVIEW, "ambiguous_scope", "Orchestrator")
+                for review_round in range(run.expansion_limit + 1):
+                    review_payload: dict[str, object] = {
+                        **payload, "failure_analysis": analysis.dict(),
+                        "requested_files": analysis.files_to_modify,
+                        "selected_context": [item.dict() for item in run.context.items],
+                    }
+                    def review_call(payload: dict[str, object] = review_payload) -> ReviewDecision:
+                        return reviewer.review(run.run_id, payload)
+
+                    decision = self._model_or_error(run, review_call)
+                    decisions.append(decision)
+                    run.review_history.append(decision)
+                    self.store.save(run)
+                    if decision.decision == "APPROVE":
+                        run.repair_decisions.append("reviewer: " + decision.reason)
+                        self.store.save(run)
+                        self.store.move(run, State.REPAIR_APPROVED,
+                                        "reviewer_approved", "Change Reviewer")
+                        break
+                    if decision.decision == "REJECT":
+                        run.repair_decisions.append("rejected: " + decision.reason)
+                        self.store.save(run)
+                        self.store.move(run, State.REPAIR_REJECTED,
+                                        "reviewer_rejected", "Change Reviewer")
+                        rejections += 1
+                        if rejections < 2:
+                            self.store.move(run, State.ANALYZING_FAILURE,
+                                            "alternate_strategy_requested", "Orchestrator")
+                            break
+                        self.store.move(run, State.NEEDS_HUMAN_REVIEW,
+                                        "no_supported_repair", "Orchestrator")
+                        run.final_status = State.NEEDS_HUMAN_REVIEW.value
+                        run.ended_at = datetime.now(timezone.utc).isoformat()
+                        self.store.save(run)
+                        return False
+                    if run.expansion_count >= run.expansion_limit:
+                        self._context_exhausted(run, decision.additional_context_needed,
+                                                "Reviewer requested evidence after expansion limit",
+                                                "Change Reviewer")
+                        return False
+                    self.store.move(run, State.GATHERING_ADDITIONAL_CONTEXT,
+                                    "reviewer_requested_evidence", "Context Manager")
+                    previous = run.context
+                    run.context = expand_context(sandbox.path, run.analysis, previous,
+                                                 failure_text(before), run.patch.changed_files,
+                                                 decision.additional_context_needed)
+                    run.context_expansions.append(ContextExpansionRecord(
+                        attempt_number=run.attempt_number, previous_context=previous,
+                        new_context=run.context,
+                        expansion_reason="Reviewer requested: " +
+                                         ", ".join(decision.additional_context_needed)))
+                    self.store.save(run)
+                    run.expansion_count += 1
+                    self.store.save(run)
+                    self.store.move(run, State.AWAITING_REVIEW,
+                                    "context_expanded", "Context Manager")
+                if run.current_state == State.ANALYZING_FAILURE:
+                    continue
+                if run.current_state == State.AWAITING_REVIEW:
+                    self.store.move(run, State.REPAIR_REJECTED,
+                                    "review_limit_reached", "Orchestrator")
+                    self.store.move(run, State.NEEDS_HUMAN_REVIEW,
+                                    "review_limit_reached", "Orchestrator")
+                    run.final_status = State.NEEDS_HUMAN_REVIEW.value
+                    run.ended_at = datetime.now(timezone.utc).isoformat()
+                    self.store.save(run)
+                    return False
+            next_attempt = run.attempt_number + 1
+            record = RepairAttemptRecord(
+                attempt_number=next_attempt, failure_analysis=analysis,
+                repair_decision_path=path, approval_reason=direct_reason or
+                "independent Reviewer approved", reviewer_decisions=decisions,
+                stable_snapshot_id=sandbox.last_stable_snapshot,
+                last_verified_stable_snapshot_id=sandbox.last_stable_snapshot,
+                repair_base_checkpoint_id=git(sandbox.path, "rev-parse", "HEAD"),
+                verification_before=before)
+            run.repair_attempts.append(record)
+            run.attempt_number = next_attempt
+            self.store.save(run)
+            self.store.move(run, State.REPAIRING, "repair_authorized", "Orchestrator")
+            repair_payload: dict[str, object] = {
+                "migration_goal": run.request.migration_goal,
+                "migration_plan": run.plan.dict(), "attempt_number": next_attempt,
+                "failure_analysis": analysis.dict(), "approved_files": analysis.files_to_modify,
+                "current_relevant_code": relevant_code(sandbox.path, analysis.files_to_modify),
+                "current_diff": current_diff, "verification_result": before.dict(),
+                "selected_context": [item.dict() for item in run.context.items],
+                "context_files": [item.path for item in run.context.items],
+            }
+            def repair_call(payload: dict[str, object] = repair_payload) -> PatchProposal:
+                return generator.generate(run.run_id, payload)
+
+            repair = self._model_or_error(run, repair_call)
+            record.proposal = repair
+            changed = {item.path for item in repair.changes}
+            if not changed or not changed.issubset(set(analysis.files_to_modify)):
+                raise ValueError("repair patch includes unapproved files")
+            candidate = apply_proposal(sandbox, repair)
+            record.candidate_checkpoint_id = candidate.post_snapshot
+            record.repair_diff = candidate.diff
+            self.store.save(run)
+            self.store.move(run, State.VERIFYING_SANDBOX, "repair_candidate_applied", "Repair Executor")
+            after = self.verifier.run(sandbox.path)
+            record.verification_after = after
+            run.sandbox_verification = after
+            self.store.save(run)
+            if after.passed:
+                sandbox.promote_candidate(candidate.post_snapshot)
+                cumulative = subprocess.run(
+                    ["git", "diff", sandbox.original_snapshot, "HEAD"], cwd=sandbox.path,
+                    text=True, capture_output=True, check=True).stdout
+                files = git(sandbox.path, "diff", "--name-only", sandbox.original_snapshot,
+                            "HEAD").splitlines()
+                run.patch = PatchResult(pre_snapshot=sandbox.original_snapshot,
+                                        post_snapshot=candidate.post_snapshot,
+                                        changed_files=files, diff=cumulative,
+                                        sha256=hashlib.sha256(cumulative.encode()).hexdigest())
+                self.store.save(run)
+                self.store.move(run, State.VERIFIED_PATCH_READY,
+                                "repair_checks_passed", "Verification Runner")
+                return True
+            if degraded(before, after):
+                record.degraded = True
+                record.degraded_reason = degradation_reason(before, after)
+                record.rollback_target = record.repair_base_checkpoint_id
+                record.rollback_reason = record.degraded_reason
+                assert record.rollback_target is not None
+                restored = sandbox.restore_checkpoint(record.rollback_target)
+                record.rollback_result = "restored " + restored
+                self.store.save(run)
+            if run.attempt_number == 3:
+                self.store.move(run, State.NEEDS_HUMAN_REVIEW,
+                                "attempt_limit_reached", "Orchestrator")
+                run.final_status = State.NEEDS_HUMAN_REVIEW.value
+                run.ended_at = datetime.now(timezone.utc).isoformat()
+                self.store.save(run)
+                return False
+            self.store.move(run, State.ANALYZING_FAILURE,
+                            "repair_verification_failed", "Verification Runner")
+
     def _run(self, canonical: Path, artifact_parent: Path,
              approval: str) -> RunRecord:
         canonical = canonical.resolve(strict=True)
@@ -165,8 +415,9 @@ class Workflow:
         request = MigrationRequest(repository=str(target))
         run = RunRecord(run_id=uuid.uuid4().hex, request=request,
                         current_state=State.RECEIVED,
-                        prompt_name="02_happy_path_e2e",
-                        prompt_version="v1.1",
+                        expansion_limit=self.max_context_expansions,
+                        prompt_name="03_failure_repair_path" if self.repair_enabled else "02_happy_path_e2e",
+                        prompt_version="v1" if self.repair_enabled else "v1.1",
                         repository_identifiers={"canonical": str(canonical),
                                                 "target": str(target),
                                                 "target_main_commit": git(target, "rev-parse", "main")},
@@ -222,10 +473,22 @@ class Workflow:
             run.sandbox_verification = self.verifier.run(sandbox.path)
             self.store.save(run)
             if not run.sandbox_verification.passed:
-                run.final_status = "sandbox_verification_failed"
-                run.ended_at = datetime.now(timezone.utc).isoformat()
-                self.store.save(run)
-                return run
+                if not self.repair_enabled:
+                    run.final_status = "sandbox_verification_failed"
+                    run.ended_at = datetime.now(timezone.utc).isoformat()
+                    self.store.save(run)
+                    return run
+                if any(check.name == "installed Pydantic v2" and check.exit_code != 0
+                       for check in run.sandbox_verification.checks):
+                    self.store.move(run, State.ENVIRONMENT_ERROR,
+                                    "verification_environment_failed", "Verification Runner")
+                    run.final_status = State.ENVIRONMENT_ERROR.value
+                    run.ended_at = datetime.now(timezone.utc).isoformat()
+                    self.store.save(run)
+                    return run
+                if not self._repair_until_verified(run, sandbox):
+                    return run
+                git(sandbox.path, "bundle", "create", str(bundle), "--all")
             else:
                 sandbox.promote_candidate(run.patch.post_snapshot)
                 self.store.move(run, State.VERIFIED_PATCH_READY, "checks_passed", "Verification Runner")
