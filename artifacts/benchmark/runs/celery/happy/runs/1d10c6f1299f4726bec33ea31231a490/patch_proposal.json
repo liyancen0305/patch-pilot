@@ -1,0 +1,13 @@
+{
+  "changes": [
+    {
+      "path": "pyproject.toml",
+      "content": "[build-system]\nrequires = [\"setuptools>=68\"]\nbuild-backend = \"setuptools.build_meta\"\n[project]\nname = \"patchpilot-celery-4-fixture\"\nversion = \"0.1.0\"\nrequires-python = \">=3.10\"\ndependencies = [\"celery==5.5.3\"]\n[tool.setuptools.packages.find]\nwhere = [\"src\"]\n[tool.pytest.ini_options]\ntestpaths = [\"tests\"]\n[tool.mypy]\npython_version = \"3.10\"\nmypy_path = \"src\"\nignore_missing_imports = true\ncheck_untyped_defs = true\n[tool.ruff]\nline-length = 88\ntarget-version = \"py310\"\n"
+    },
+    {
+      "path": "src/jobs/config.py",
+      "content": "broker_url = \"memory://\"\nresult_backend = \"cache+memory://\"\ntask_always_eager = True\ntask_eager_propagates = True\n"
+    }
+  ],
+  "rationale": "controlled celery migration proposal"
+}

@@ -44,7 +44,7 @@ class State(str, Enum):
 
 class MigrationRequest(StrictModel):
     repository: str
-    migration_goal: str = "Upgrade Pydantic v1 to Pydantic v2"
+    migration_goal: str
     language: str = "Python"
     constraints: list[str] = Field(default_factory=lambda: [
         "remain in Python", "preserve existing behavior", "do not modify unrelated files",
@@ -59,14 +59,20 @@ class CapabilityDecision(StrictModel):
 
 class RepositoryAnalysis(StrictModel):
     dependency_file: str
-    pydantic_version: str
+    dependency_name: str
+    dependency_version: str
+    source_version: str
+    target_version: str
+    migration_family: str
+    migration_api_pattern: str
+    shared_base_symbols: list[str]
     source_files: list[str]
     test_files: list[str]
     configuration_files: list[str]
     imports: dict[str, list[str]]
     classes: dict[str, list[str]]
     decorators: dict[str, list[str]]
-    v1_usages: dict[str, list[str]]
+    migration_api_usages: dict[str, list[str]]
     related_tests: dict[str, list[str]]
     evidence: dict[str, list[str]] = Field(default_factory=dict)
 
@@ -233,6 +239,9 @@ class RunRecord(StrictModel):
     prompt_version: str = "v1.1"
     attempt_number: int = 1
     repository_identifiers: dict[str, str]
+    use_case: int
+    migration_family: str
+    model_type: str = "unknown"
     analysis: RepositoryAnalysis | None = None
     context: ContextBundle | None = None
     plan: MigrationPlan | None = None

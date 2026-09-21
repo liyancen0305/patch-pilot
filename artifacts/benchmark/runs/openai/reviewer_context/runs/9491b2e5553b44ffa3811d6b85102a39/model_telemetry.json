@@ -1,0 +1,339 @@
+[
+  {
+    "run_id": "9491b2e5553b44ffa3811d6b85102a39",
+    "attempt_number": 1,
+    "component": "Migration Planner",
+    "model": "controlled-benchmark-test-double",
+    "prompt_name": "04_remaining_use_cases",
+    "prompt_version": "v1.1",
+    "input_metadata": {
+      "retry": 1,
+      "workflow_attempt": 1,
+      "context_files": [
+        "src/assistant_app/gateway.py",
+        "pyproject.toml",
+        "pyproject.toml",
+        "src/assistant_app/gateway.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "pyproject.toml",
+        "pyproject.toml",
+        "pyproject.toml",
+        "src/assistant_app/__init__.py",
+        "src/assistant_app/service.py"
+      ],
+      "characters": 8313
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "latency_seconds": 0.0021730960015702294,
+    "estimated_cost_usd": 0.0,
+    "structured_output": {
+      "summary": "openai supported-version migration",
+      "planned_changes": [
+        {
+          "file": "pyproject.toml",
+          "symbol": "dependency or affected application behavior",
+          "reason": "old API or dependency compatibility",
+          "change": "migrate to supported API while preserving behavior",
+          "expected_effect": "existing regression behavior remains"
+        },
+        {
+          "file": "src/assistant_app/gateway.py",
+          "symbol": "dependency or affected application behavior",
+          "reason": "old API or dependency compatibility",
+          "change": "migrate to supported API while preserving behavior",
+          "expected_effect": "existing regression behavior remains"
+        }
+      ],
+      "affected_files": [
+        "pyproject.toml",
+        "src/assistant_app/gateway.py"
+      ],
+      "risks": [
+        "behavioral regression at migration boundary"
+      ],
+      "validation_plan": [
+        "migration-specific",
+        "pytest",
+        "mypy",
+        "ruff",
+        "runtime/import"
+      ]
+    },
+    "error": null,
+    "timestamp": "2026-09-21T01:07:58.534201+00:00"
+  },
+  {
+    "run_id": "9491b2e5553b44ffa3811d6b85102a39",
+    "attempt_number": 1,
+    "component": "Patch Generator",
+    "model": "controlled-benchmark-test-double",
+    "prompt_name": "04_remaining_use_cases",
+    "prompt_version": "v1.1",
+    "input_metadata": {
+      "retry": 1,
+      "workflow_attempt": 1,
+      "context_files": [
+        "src/assistant_app/gateway.py",
+        "pyproject.toml",
+        "pyproject.toml",
+        "src/assistant_app/gateway.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "pyproject.toml",
+        "pyproject.toml",
+        "pyproject.toml",
+        "src/assistant_app/__init__.py",
+        "src/assistant_app/service.py"
+      ],
+      "characters": 6912
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "latency_seconds": 0.002189265000197338,
+    "estimated_cost_usd": 0.0,
+    "structured_output": {
+      "changes": [
+        {
+          "path": "pyproject.toml",
+          "content": "[build-system]\nrequires = [\"setuptools>=68\"]\nbuild-backend = \"setuptools.build_meta\"\n[project]\nname = \"patchpilot-openai-028-fixture\"\nversion = \"0.1.0\"\nrequires-python = \">=3.10\"\ndependencies = [\"openai==1.109.1\"]\n[tool.setuptools.packages.find]\nwhere = [\"src\"]\n[tool.pytest.ini_options]\ntestpaths = [\"tests\"]\n[tool.mypy]\npython_version = \"3.10\"\nmypy_path = \"src\"\nignore_missing_imports = true\ncheck_untyped_defs = true\n[tool.ruff]\nline-length = 88\ntarget-version = \"py310\"\n"
+        },
+        {
+          "path": "src/assistant_app/gateway.py",
+          "content": "from typing import Any\n\nfrom openai import OpenAI\n\n\ndef complete(prompt: str, gateway: Any = None) -> str:\n    client = gateway or OpenAI()\n    response = client.chat.completions.create(\n        model=\"gpt-3.5-turbo\", messages=[{\"role\": \"user\", \"content\": prompt}])\n    return str(response.choices[0].message.content).upper()\n"
+        }
+      ],
+      "rationale": "controlled openai migration proposal"
+    },
+    "error": null,
+    "timestamp": "2026-09-21T01:07:58.559017+00:00"
+  },
+  {
+    "run_id": "9491b2e5553b44ffa3811d6b85102a39",
+    "attempt_number": 1,
+    "component": "Failure Analyzer",
+    "model": "controlled-benchmark-test-double",
+    "prompt_name": "04_remaining_use_cases",
+    "prompt_version": "v1.1",
+    "input_metadata": {
+      "retry": 1,
+      "workflow_attempt": 1,
+      "context_files": [
+        "src/assistant_app/gateway.py",
+        "pyproject.toml",
+        "pyproject.toml",
+        "src/assistant_app/gateway.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "pyproject.toml",
+        "pyproject.toml",
+        "pyproject.toml",
+        "src/assistant_app/__init__.py",
+        "src/assistant_app/service.py"
+      ],
+      "characters": 12839
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "latency_seconds": 0.0018503520004742313,
+    "estimated_cost_usd": 0.0,
+    "structured_output": {
+      "failure_type": "migration_behavior_regression",
+      "likely_root_cause": "migration candidate changed tested behavior",
+      "supporting_evidence": [
+        "real pytest regression output"
+      ],
+      "proposed_repair": "restore the tested behavior in the affected file",
+      "files_to_modify": [
+        "src/assistant_app/gateway.py"
+      ],
+      "reason_for_each_file": [
+        {
+          "file": "src/assistant_app/gateway.py",
+          "reason": "the regression exercises this migration boundary",
+          "supporting_evidence": "failing regression test and current diff",
+          "expected_effect": "restore the original business behavior",
+          "required_verification": "complete verification suite"
+        }
+      ],
+      "additional_context_needed": [],
+      "confidence": 0.5
+    },
+    "error": null,
+    "timestamp": "2026-09-21T01:08:16.434567+00:00"
+  },
+  {
+    "run_id": "9491b2e5553b44ffa3811d6b85102a39",
+    "attempt_number": 1,
+    "component": "Change Reviewer",
+    "model": "controlled-benchmark-test-double",
+    "prompt_name": "04_remaining_use_cases",
+    "prompt_version": "v1.1",
+    "input_metadata": {
+      "retry": 1,
+      "workflow_attempt": 1,
+      "context_files": [
+        "src/assistant_app/gateway.py",
+        "pyproject.toml",
+        "pyproject.toml",
+        "src/assistant_app/gateway.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "pyproject.toml",
+        "pyproject.toml",
+        "pyproject.toml",
+        "src/assistant_app/__init__.py",
+        "src/assistant_app/service.py"
+      ],
+      "characters": 13579
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "latency_seconds": 0.0017090800010919338,
+    "estimated_cost_usd": 0.0,
+    "structured_output": {
+      "decision": "NEED_MORE_EVIDENCE",
+      "reason": "independent review of migration regression evidence",
+      "supporting_evidence": [
+        "failing test and affected code"
+      ],
+      "risk": "moderate",
+      "additional_context_needed": [
+        "tests/test_assistant_app.py"
+      ],
+      "required_verification": [
+        "complete verification suite"
+      ]
+    },
+    "error": null,
+    "timestamp": "2026-09-21T01:08:16.461432+00:00"
+  },
+  {
+    "run_id": "9491b2e5553b44ffa3811d6b85102a39",
+    "attempt_number": 1,
+    "component": "Change Reviewer",
+    "model": "controlled-benchmark-test-double",
+    "prompt_name": "04_remaining_use_cases",
+    "prompt_version": "v1.1",
+    "input_metadata": {
+      "retry": 1,
+      "workflow_attempt": 1,
+      "context_files": [
+        "src/assistant_app/gateway.py",
+        "pyproject.toml",
+        "pyproject.toml",
+        "src/assistant_app/gateway.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "pyproject.toml",
+        "pyproject.toml",
+        "pyproject.toml",
+        "src/assistant_app/__init__.py",
+        "src/assistant_app/service.py"
+      ],
+      "characters": 15094
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "latency_seconds": 0.004660921998947742,
+    "estimated_cost_usd": 0.0,
+    "structured_output": {
+      "decision": "APPROVE",
+      "reason": "independent review of migration regression evidence",
+      "supporting_evidence": [
+        "failing test and affected code"
+      ],
+      "risk": "moderate",
+      "additional_context_needed": [],
+      "required_verification": [
+        "complete verification suite"
+      ]
+    },
+    "error": null,
+    "timestamp": "2026-09-21T01:08:16.504661+00:00"
+  },
+  {
+    "run_id": "9491b2e5553b44ffa3811d6b85102a39",
+    "attempt_number": 2,
+    "component": "Repair Generator",
+    "model": "controlled-benchmark-test-double",
+    "prompt_name": "04_remaining_use_cases",
+    "prompt_version": "v1.1",
+    "input_metadata": {
+      "retry": 1,
+      "workflow_attempt": 2,
+      "context_files": [
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "pyproject.toml",
+        "pyproject.toml",
+        "src/assistant_app/gateway.py",
+        "pyproject.toml",
+        "pyproject.toml",
+        "pyproject.toml",
+        "src/assistant_app/gateway.py",
+        "pyproject.toml",
+        "pyproject.toml"
+      ],
+      "characters": 12705
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "latency_seconds": 0.006461181001213845,
+    "estimated_cost_usd": 0.0,
+    "structured_output": {
+      "changes": [
+        {
+          "path": "src/assistant_app/gateway.py",
+          "content": "from typing import Any\n\nfrom openai import OpenAI\n\n\ndef complete(prompt: str, gateway: Any = None) -> str:\n    client = gateway or OpenAI()\n    response = client.chat.completions.create(\n        model=\"gpt-3.5-turbo\", messages=[{\"role\": \"user\", \"content\": prompt}])\n    return str(response.choices[0].message.content)\n"
+        }
+      ],
+      "rationale": "approved repair of tested behavior"
+    },
+    "error": null,
+    "timestamp": "2026-09-21T01:08:16.570051+00:00"
+  }
+]

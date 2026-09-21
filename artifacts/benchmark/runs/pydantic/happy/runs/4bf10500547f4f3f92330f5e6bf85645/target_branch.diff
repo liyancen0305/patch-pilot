@@ -1,0 +1,151 @@
+diff --git a/pyproject.toml b/pyproject.toml
+index d6964d8..90e7856 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
+ name = "patchpilot-pydantic-v1-fixture"
+ version = "0.1.0"
+ requires-python = ">=3.10"
+-dependencies = ["pydantic==1.10.26"]
++dependencies = ["pydantic>=2,<3"]
+ 
+ [tool.setuptools.packages.find]
+ where = ["src"]
+diff --git a/src/shop/base.py b/src/shop/base.py
+index f6c9fd3..d1d1e74 100644
+--- a/src/shop/base.py
++++ b/src/shop/base.py
+@@ -1,10 +1,7 @@
+-"""Shared Pydantic v1 model configuration."""
++"""Shared Pydantic v2 model configuration."""
+ 
+-from pydantic import BaseModel
++from pydantic import BaseModel, ConfigDict
+ 
+ 
+ class ShopModel(BaseModel):
+-    class Config:
+-        anystr_strip_whitespace = True
+-        extra = "forbid"
+-        validate_assignment = True
++    model_config = ConfigDict(str_strip_whitespace=True, extra="forbid", validate_assignment=True)
+diff --git a/src/shop/orders.py b/src/shop/orders.py
+index c090912..9df6304 100644
+--- a/src/shop/orders.py
++++ b/src/shop/orders.py
+@@ -1,7 +1,7 @@
+ """Order models with cross-field validation."""
+ 
+-
+-from pydantic import root_validator, validator
++from pydantic import field_validator, model_validator
++from typing_extensions import Self
+ 
+ from .base import ShopModel
+ from .users import User
+@@ -12,7 +12,8 @@ class OrderItem(ShopModel):
+     quantity: int
+     unit_price_cents: int
+ 
+-    @validator("quantity", "unit_price_cents")
++    @field_validator("quantity", "unit_price_cents")
++    @classmethod
+     def positive_amount(cls, value: int) -> int:
+         if value <= 0:
+             raise ValueError("amount must be positive")
+@@ -25,12 +26,9 @@ class Order(ShopModel):
+     items: list[OrderItem]
+     total_cents: int
+ 
+-    @root_validator
+-    def total_matches_items(cls, values: dict[str, object]) -> dict[str, object]:
+-        items = values.get("items")
+-        total = values.get("total_cents")
+-        if isinstance(items, list) and isinstance(total, int):
+-            expected = sum(item.quantity * item.unit_price_cents for item in items)
+-            if total != expected:
+-                raise ValueError("total does not match items")
+-        return values
++    @model_validator(mode="after")
++    def total_matches_items(self) -> Self:
++        expected = sum(item.quantity * item.unit_price_cents for item in self.items)
++        if self.total_cents != expected:
++            raise ValueError("total does not match items")
++        return self
+diff --git a/src/shop/users.py b/src/shop/users.py
+index 44edd84..7f45244 100644
+--- a/src/shop/users.py
++++ b/src/shop/users.py
+@@ -1,6 +1,6 @@
+ """User model and field validation."""
+ 
+-from pydantic import validator
++from pydantic import field_validator
+ 
+ from .base import ShopModel
+ 
+@@ -10,13 +10,15 @@ class User(ShopModel):
+     email: str
+     name: str
+ 
+-    @validator("id")
++    @field_validator("id")
++    @classmethod
+     def positive_id(cls, value: int) -> int:
+         if value <= 0:
+             raise ValueError("id must be positive")
+         return value
+ 
+-    @validator("email")
++    @field_validator("email")
++    @classmethod
+     def normalized_email(cls, value: str) -> str:
+         value = value.lower()
+         if "@" not in value or value.startswith("@") or value.endswith("@"):
+diff --git a/tests/test_shop.py b/tests/test_shop.py
+index 66824c5..7f3c256 100644
+--- a/tests/test_shop.py
++++ b/tests/test_shop.py
+@@ -16,12 +16,12 @@ def test_valid_user_and_normalization() -> None:
+ ])
+ def test_invalid_user_rejected(data: dict[str, object]) -> None:
+     with pytest.raises(ValidationError):
+-        User.parse_obj(data)
++        User.model_validate(data)
+ 
+ 
+ def test_shared_config_rejects_extra_and_validates_assignment() -> None:
+     with pytest.raises(ValidationError):
+-        User.parse_obj({"id": 1, "email": "a@example.com", "name": "A", "unknown": True})
++        User.model_validate({"id": 1, "email": "a@example.com", "name": "A", "unknown": True})
+     user = User(id=1, email="a@example.com", name="A")
+     with pytest.raises(ValidationError):
+         user.id = -1
+@@ -33,7 +33,7 @@ def test_item_field_validation() -> None:
+ 
+ 
+ def test_nested_parse_and_serialization() -> None:
+-    order = Order.parse_obj({
++    order = Order.model_validate({
+         "id": 10,
+         "customer": {"id": 1, "email": "ADA@EXAMPLE.COM", "name": " Ada "},
+         "items": [
+@@ -44,15 +44,15 @@ def test_nested_parse_and_serialization() -> None:
+     })
+     assert isinstance(order.customer, User)
+     assert isinstance(order.items[0], OrderItem)
+-    assert order.dict()["customer"] == {
++    assert order.model_dump()["customer"] == {
+         "id": 1, "email": "ada@example.com", "name": "Ada"
+     }
+-    assert order.dict()["items"][0]["sku"] == "pen"
++    assert order.model_dump()["items"][0]["sku"] == "pen"
+ 
+ 
+ def test_order_total_matches_multiple_items() -> None:
+     with pytest.raises(ValidationError, match="total does not match items"):
+-        Order.parse_obj({
++        Order.model_validate({
+             "id": 10,
+             "customer": {"id": 1, "email": "a@example.com", "name": "A"},
+             "items": [{"sku": "pen", "quantity": 2, "unit_price_cents": 150}],

@@ -1,0 +1,71 @@
+{
+  "passed": false,
+  "checks": [
+    {
+      "name": "Celery 5 migration",
+      "command": [],
+      "exit_code": 0,
+      "output": "dependency and old API scan"
+    },
+    {
+      "name": "installed Celery 5",
+      "command": [
+        "/tmp/patchpilot-p4-celery-new/bin/python",
+        "-c",
+        "import importlib.metadata,sys; from packaging.specifiers import SpecifierSet; sys.exit(importlib.metadata.version(sys.argv[1]) not in SpecifierSet(sys.argv[2]))",
+        "celery",
+        "==5.5.3"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "name": "pytest",
+      "command": [
+        "/tmp/patchpilot-p4-celery-new/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider"
+      ],
+      "exit_code": 1,
+      "output": ".F                                                                       [100%]\n=================================== FAILURES ===================================\n_________________________ test_eager_errors_propagate __________________________\n\n    def test_eager_errors_propagate() -> None:\n>       with pytest.raises(ValueError, match=\"nonnegative\"):\nE       Failed: DID NOT RAISE ValueError\n\ntests/test_jobs.py:12: Failed\n------------------------------ Captured log call -------------------------------\nERROR    celery.app.trace:trace.py:267 Task jobs.tasks.add_tax[0f418e8c-3360-4277-8b11-60136e1f9eca] raised unexpected: ValueError('amount must be nonnegative')\nTraceback (most recent call last):\n  File \"/tmp/patchpilot-p4-celery-new/lib/python3.12/site-packages/celery/app/trace.py\", line 453, in trace_task\n    R = retval = fun(*args, **kwargs)\n                 ^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/patchpilot-7pj4utyk/repo/src/jobs/tasks.py\", line 10, in add_tax\n    raise ValueError(\"amount must be nonnegative\")\nValueError: amount must be nonnegative\n=========================== short test summary info ============================\nFAILED tests/test_jobs.py::test_eager_errors_propagate - Failed: DID NOT RAIS...\n1 failed, 1 passed in 0.70s\n"
+    },
+    {
+      "name": "mypy",
+      "command": [
+        "/tmp/patchpilot-p4-celery-new/bin/python",
+        "-m",
+        "mypy",
+        "src",
+        "tests"
+      ],
+      "exit_code": 0,
+      "output": "Success: no issues found in 4 source files\n"
+    },
+    {
+      "name": "ruff",
+      "command": [
+        "/tmp/patchpilot-p4-celery-new/bin/python",
+        "-m",
+        "ruff",
+        "check",
+        "src",
+        "tests"
+      ],
+      "exit_code": 0,
+      "output": "All checks passed!\n"
+    },
+    {
+      "name": "runtime/import",
+      "command": [
+        "/tmp/patchpilot-p4-celery-new/bin/python",
+        "-c",
+        "import jobs; assert jobs"
+      ],
+      "exit_code": 0,
+      "output": ""
+    }
+  ]
+}

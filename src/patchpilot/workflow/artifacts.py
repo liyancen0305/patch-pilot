@@ -29,7 +29,7 @@ def export_run(store: RunStore, run_id: str, artifact_parent: Path) -> Path:
                         ("target_verification", run.target_verification)):
         if value is not None:
             write(f"{name}.json", json.loads(value.json()))
-    if run.prompt_name == "03_failure_repair_path":
+    if run.repair_attempts or run.failure_analyses or run.context_expansions:
         write("failure_analyses.json", [json.loads(item.json()) for item in run.failure_analyses])
         write("review_history.json", [json.loads(item.json()) for item in run.review_history])
         write("context_expansions.json", [json.loads(item.json()) for item in run.context_expansions])
@@ -52,6 +52,16 @@ def export_run(store: RunStore, run_id: str, artifact_parent: Path) -> Path:
         duration = (datetime.fromisoformat(run.ended_at) - datetime.fromisoformat(run.started_at)).total_seconds()
     write("summary.json", {
         "run_id": run_id, "migration_goal": run.request.migration_goal,
+        "use_case": run.use_case, "migration_family": run.migration_family,
+        "dependency_name": run.analysis.dependency_name if run.analysis else None,
+        "source_version": run.analysis.source_version if run.analysis else None,
+        "target_version": run.analysis.target_version if run.analysis else None,
+        "model_type": run.model_type,
+        "reviewer_invoked": bool(run.review_history),
+        "context_expansions": len(run.context_expansions),
+        "files_changed": run.patch.changed_files if run.patch else [],
+        "rollback_events": [item.dict() for item in run.repair_attempts
+                            if item.rollback_result],
         "model": "gpt-5.6-sol" if any(call.model == "gpt-5.6-sol" for call in calls) else
                  (calls[0].model if calls else None),
         "prompt_version": run.prompt_version, "final_state": run.current_state.value,
@@ -59,6 +69,8 @@ def export_run(store: RunStore, run_id: str, artifact_parent: Path) -> Path:
         "approval": run.approval.decision if run.approval else None,
         "target_branch": run.target_branch,
         "target_verification_passed": run.target_verification.passed if run.target_verification else None,
+        "verification_status": "passed" if run.target_verification and run.target_verification.passed
+                               else "failed" if run.sandbox_verification else "not_run",
         "attempt_count": run.attempt_number, "total_model_calls": len(calls),
         "input_tokens": sum(call.input_tokens for call in calls),
         "output_tokens": sum(call.output_tokens for call in calls),

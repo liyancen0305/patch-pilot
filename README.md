@@ -55,3 +55,25 @@ verification, so it needs no OpenAI API key:
 
 Run evidence is written under `artifacts/controlled-repair-*/runs/<run_id>/`.
 Live Sol quality, cost, and latency evaluation is deferred.
+
+## Part 4 fixed migration benchmark
+
+The fixed benchmark adds SQLAlchemy 1.4 → 2.0, HTTPX 0.27 → 0.28,
+OpenAI Python SDK 0.28 → 1.x, and Celery 4 → 5 alongside Pydantic v1 → v2.
+Each new fixture starts from an exact old dependency pin. The same state machine,
+sandbox, approval gate, target-branch application, and bounded repair loop run
+all five cases.
+
+Create the isolated old and new dependency environments, then run the
+controlled-model benchmark:
+
+```bash
+scripts/setup_prompt4_envs.sh
+.venv/bin/python scripts/run_prompt4_benchmark.py
+.venv/bin/python -m pytest tests/test_prompt4_benchmark.py
+```
+
+The summary is written to `artifacts/benchmark/prompt4_summary.json`; each
+run retains its state history, verification results, model telemetry, and patch
+under `artifacts/benchmark/runs/`. The controlled model is a test double.
+Live Sol quality, token usage, cost, and latency evaluation remains deferred.

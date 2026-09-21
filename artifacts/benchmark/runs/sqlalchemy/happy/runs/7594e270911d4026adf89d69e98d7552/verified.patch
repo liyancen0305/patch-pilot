@@ -1,0 +1,35 @@
+diff --git a/pyproject.toml b/pyproject.toml
+index b208ad7..8a98de5 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
+ name = "patchpilot-sqlalchemy-14-fixture"
+ version = "0.1.0"
+ requires-python = ">=3.10"
+-dependencies = ["SQLAlchemy==1.4.54"]
++dependencies = ["SQLAlchemy==2.0.44"]
+ [tool.setuptools.packages.find]
+ where = ["src"]
+ [tool.pytest.ini_options]
+diff --git a/src/ledger/repository.py b/src/ledger/repository.py
+index 261f708..02200e7 100644
+--- a/src/ledger/repository.py
++++ b/src/ledger/repository.py
+@@ -1,3 +1,6 @@
++from typing import cast
++
++from sqlalchemy import select
+ from sqlalchemy.orm import Session
+ 
+ from .models import Account
+@@ -11,8 +14,8 @@ def add_account(session: Session, owner: str, balance: int) -> Account:
+ 
+ 
+ def find_account(session: Session, owner: str) -> Account | None:
+-    return session.query(Account).filter(Account.owner == owner).one_or_none()
++    return session.scalars(select(Account).where(Account.owner == owner)).one_or_none()
+ 
+ 
+ def total_balance(session: Session) -> int:
+-    return sum(row.balance for row in session.query(Account).order_by(Account.id).all())
++    return sum(cast(int, row.balance) for row in session.scalars(select(Account).order_by(Account.id)))

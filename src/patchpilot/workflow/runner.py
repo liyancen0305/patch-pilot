@@ -15,6 +15,7 @@ from typing import TypeVar
 from patchpilot.sandbox import Sandbox
 
 from .artifacts import export_run
+from .benchmarks import declared_pin, dependency_verification_command, for_root
 from .guardrails import validate_test_change
 from .model import ModelClient
 from .repair import (
@@ -46,9 +47,6 @@ from .schema import (
 from .store import RunStore
 
 T = TypeVar("T")
-
-V1_SOURCE = re.compile(r"@(?:root_validator|validator)\b|class Config\b|\.parse_obj\(|\.dict\(")
-
 
 def git(root: Path, *args: str) -> str:
     result = subprocess.run(["git", *args], cwd=root, text=True, capture_output=True, check=False)
@@ -103,20 +101,25 @@ class VerificationRunner:
         self.python = python.absolute()
 
     def run(self, root: Path) -> VerificationResult:
+        family = for_root(root)
+        if family is None:
+            raise ValueError("unsupported fixture dependency")
         checks: list[VerificationCheck] = []
-        dependencies = (root / "pyproject.toml").read_text()
+        dependencies = declared_pin(root, family)
         source = "\n".join(path.read_text() for folder in ("src", "tests")
                            for path in (root / folder).rglob("*.py"))
-        migrated = bool(re.search(r"pydantic(?:>=|==)2", dependencies)) and not V1_SOURCE.search(source)
-        checks.append(VerificationCheck(name="Pydantic v2 migration", command=[],
+        migrated = (dependencies == family.target_pin and
+                    not re.search(family.deprecated_api_pattern, source))
+        checks.append(VerificationCheck(name=family.migration_check_name, command=[],
                                         exit_code=0 if migrated else 1,
-                                        output="dependency and v1 API scan"))
+                                        output="dependency and old API scan"))
         commands = [
-            ("installed Pydantic v2", [str(self.python), "-c", "import pydantic; assert int(pydantic.VERSION.split('.')[0]) == 2"]),
+            (family.dependency_check_name,
+             dependency_verification_command(self.python, family)),
             ("pytest", [str(self.python), "-m", "pytest", "-q", "-p", "no:cacheprovider"]),
             ("mypy", [str(self.python), "-m", "mypy", "src", "tests"]),
             ("ruff", [str(self.python), "-m", "ruff", "check", "src", "tests"]),
-            ("runtime/import", [str(self.python), "-c", "import shop; assert shop.User and shop.Order"]),
+            ("runtime/import", [str(self.python), "-c", family.runtime_check]),
         ]
         with tempfile.TemporaryDirectory(prefix="patchpilot-verification-cache-") as cache:
             environment = {**__import__("os").environ, "PYTHONPATH": "src",
@@ -136,10 +139,12 @@ class VerificationRunner:
 class Workflow:
     def __init__(self, store: RunStore, client: ModelClient,
                  verifier: VerificationRunner, repair_enabled: bool = False,
-                 max_context_expansions: int = 2) -> None:
+                 max_context_expansions: int = 2,
+                 benchmark_mode: bool = False) -> None:
         if max_context_expansions < 0:
             raise ValueError("context expansion limit cannot be negative")
         self.max_context_expansions = max_context_expansions
+        self.benchmark_mode = benchmark_mode
         self.repair_enabled = repair_enabled
         self.store = store
         self.client = client
@@ -412,13 +417,25 @@ class Workflow:
         canonical = canonical.resolve(strict=True)
         artifact_parent.mkdir(parents=True, exist_ok=True)
         target = create_target(canonical, artifact_parent)
-        request = MigrationRequest(repository=str(target))
+        family = for_root(canonical)
+        if family is None:
+            raise ValueError("unsupported fixture dependency")
+        request = MigrationRequest(repository=str(target), migration_goal=family.goal)
+        benchmark = self.benchmark_mode
         run = RunRecord(run_id=uuid.uuid4().hex, request=request,
                         current_state=State.RECEIVED,
                         expansion_limit=self.max_context_expansions,
-                        prompt_name="03_failure_repair_path" if self.repair_enabled else "02_happy_path_e2e",
-                        prompt_version="v1" if self.repair_enabled else "v1.1",
+                        prompt_name=("04_remaining_use_cases" if benchmark else
+                                     "03_failure_repair_path" if self.repair_enabled else
+                                     "02_happy_path_e2e"),
+                        prompt_version=("v1.1" if benchmark else "v1" if self.repair_enabled
+                                        else "v1.1"),
+                        use_case=family.use_case, migration_family=family.name,
+                        model_type=("live" if getattr(self.client.backend, "model", "") ==
+                                    "gpt-5.6-sol" else "test_double"),
                         repository_identifiers={"canonical": str(canonical),
+                                                "migration_family": family.name,
+                                                "use_case": str(family.use_case),
                                                 "target": str(target),
                                                 "target_main_commit": git(target, "rev-parse", "main")},
                         started_at=datetime.now(timezone.utc).isoformat())
@@ -428,6 +445,13 @@ class Workflow:
         self.store.move(run, State.SCOPE_CHECK, "begin_capability_check", "Orchestrator")
         decision = capability(request, target, self.verifier.python)
         if not decision.supported:
+            if "target dependency unavailable in verification environment" in decision.reasons:
+                self.store.move(run, State.ENVIRONMENT_ERROR,
+                                "target_dependency_unavailable", "Capability Gate")
+                run.final_status = State.ENVIRONMENT_ERROR.value
+                run.ended_at = datetime.now(timezone.utc).isoformat()
+                self.store.save(run)
+                return run
             raise ValueError(decision.reasons)
         self.store.move(run, State.ANALYZING_REPO, "supported", "Capability Gate")
         run.analysis = analyze(target)
@@ -473,16 +497,16 @@ class Workflow:
             run.sandbox_verification = self.verifier.run(sandbox.path)
             self.store.save(run)
             if not run.sandbox_verification.passed:
-                if not self.repair_enabled:
-                    run.final_status = "sandbox_verification_failed"
-                    run.ended_at = datetime.now(timezone.utc).isoformat()
-                    self.store.save(run)
-                    return run
-                if any(check.name == "installed Pydantic v2" and check.exit_code != 0
+                if any(check.name == family.dependency_check_name and check.exit_code != 0
                        for check in run.sandbox_verification.checks):
                     self.store.move(run, State.ENVIRONMENT_ERROR,
                                     "verification_environment_failed", "Verification Runner")
                     run.final_status = State.ENVIRONMENT_ERROR.value
+                    run.ended_at = datetime.now(timezone.utc).isoformat()
+                    self.store.save(run)
+                    return run
+                if not self.repair_enabled:
+                    run.final_status = "sandbox_verification_failed"
                     run.ended_at = datetime.now(timezone.utc).isoformat()
                     self.store.save(run)
                     return run
@@ -503,7 +527,7 @@ class Workflow:
                 return run
             self.store.move(run, State.APPROVED, "approved", "Simulated Human")
             self.store.move(run, State.APPLYING_TO_TARGET_BRANCH, "apply_authorized", "Orchestrator")
-            branch = f"patchpilot/pydantic-v2-{run.run_id[:8]}"
+            branch = f"patchpilot/{family.branch_slug}-{run.run_id[:8]}"
             git(target, "switch", "-c", branch)
             patch_file = artifact_parent / "verified.patch"
             patch_file.write_text(run.patch.diff)
@@ -514,7 +538,7 @@ class Workflow:
             if applied != run.patch.diff:
                 raise RuntimeError("target diff differs from sandbox verified diff")
             git(target, "add", "-A")
-            git(target, "commit", "-qm", "Apply verified Pydantic v2 patch")
+            git(target, "commit", "-qm", f"Apply verified {family.commit_label} migration patch")
             run.target_branch = branch
             run.repository_identifiers["target_commit"] = git(target, "rev-parse", "HEAD")
             self.store.save(run)

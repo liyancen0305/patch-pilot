@@ -1,0 +1,235 @@
+[
+  {
+    "run_id": "c0d695b3e11b488abffb19a8861d0273",
+    "attempt_number": 1,
+    "component": "Migration Planner",
+    "model": "controlled-benchmark-test-double",
+    "prompt_name": "04_remaining_use_cases",
+    "prompt_version": "v1.1",
+    "input_metadata": {
+      "retry": 1,
+      "workflow_attempt": 1,
+      "context_files": [
+        "tests/test_ledger.py",
+        "tests/test_ledger.py",
+        "src/ledger/repository.py",
+        "src/ledger/repository.py",
+        "pyproject.toml",
+        "pyproject.toml",
+        "src/ledger/models.py",
+        "src/ledger/models.py",
+        "src/ledger/repository.py",
+        "src/ledger/models.py",
+        "tests/test_ledger.py",
+        "tests/test_ledger.py",
+        "tests/test_ledger.py",
+        "pyproject.toml",
+        "pyproject.toml",
+        "pyproject.toml",
+        "pyproject.toml",
+        "src/ledger/__init__.py"
+      ],
+      "characters": 9470
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "latency_seconds": 0.0029419340007734718,
+    "estimated_cost_usd": 0.0,
+    "structured_output": {
+      "summary": "sqlalchemy supported-version migration",
+      "planned_changes": [
+        {
+          "file": "pyproject.toml",
+          "symbol": "dependency or affected application behavior",
+          "reason": "old API or dependency compatibility",
+          "change": "migrate to supported API while preserving behavior",
+          "expected_effect": "existing regression behavior remains"
+        },
+        {
+          "file": "src/ledger/repository.py",
+          "symbol": "dependency or affected application behavior",
+          "reason": "old API or dependency compatibility",
+          "change": "migrate to supported API while preserving behavior",
+          "expected_effect": "existing regression behavior remains"
+        }
+      ],
+      "affected_files": [
+        "pyproject.toml",
+        "src/ledger/repository.py"
+      ],
+      "risks": [
+        "behavioral regression at migration boundary"
+      ],
+      "validation_plan": [
+        "migration-specific",
+        "pytest",
+        "mypy",
+        "ruff",
+        "runtime/import"
+      ]
+    },
+    "error": null,
+    "timestamp": "2026-09-21T01:05:24.276687+00:00"
+  },
+  {
+    "run_id": "c0d695b3e11b488abffb19a8861d0273",
+    "attempt_number": 1,
+    "component": "Patch Generator",
+    "model": "controlled-benchmark-test-double",
+    "prompt_name": "04_remaining_use_cases",
+    "prompt_version": "v1.1",
+    "input_metadata": {
+      "retry": 1,
+      "workflow_attempt": 1,
+      "context_files": [
+        "tests/test_ledger.py",
+        "tests/test_ledger.py",
+        "src/ledger/repository.py",
+        "src/ledger/repository.py",
+        "pyproject.toml",
+        "pyproject.toml",
+        "src/ledger/models.py",
+        "src/ledger/models.py",
+        "src/ledger/repository.py",
+        "src/ledger/models.py",
+        "tests/test_ledger.py",
+        "tests/test_ledger.py",
+        "tests/test_ledger.py",
+        "pyproject.toml",
+        "pyproject.toml",
+        "pyproject.toml",
+        "pyproject.toml",
+        "src/ledger/__init__.py"
+      ],
+      "characters": 7042
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "latency_seconds": 0.0027658620001602685,
+    "estimated_cost_usd": 0.0,
+    "structured_output": {
+      "changes": [
+        {
+          "path": "pyproject.toml",
+          "content": "[build-system]\nrequires = [\"setuptools>=68\"]\nbuild-backend = \"setuptools.build_meta\"\n[project]\nname = \"patchpilot-sqlalchemy-14-fixture\"\nversion = \"0.1.0\"\nrequires-python = \">=3.10\"\ndependencies = [\"SQLAlchemy==2.0.44\"]\n[tool.setuptools.packages.find]\nwhere = [\"src\"]\n[tool.pytest.ini_options]\ntestpaths = [\"tests\"]\n[tool.mypy]\npython_version = \"3.10\"\nmypy_path = \"src\"\nignore_missing_imports = true\ncheck_untyped_defs = true\n[tool.ruff]\nline-length = 88\ntarget-version = \"py310\"\n"
+        },
+        {
+          "path": "src/ledger/repository.py",
+          "content": "from typing import cast\n\nfrom sqlalchemy import select\nfrom sqlalchemy.orm import Session\n\nfrom .models import Account\n\n\ndef add_account(session: Session, owner: str, balance: int) -> Account:\n    account = Account(owner=owner.strip(), balance=balance)\n    session.add(account)\n    session.commit()\n    return account\n\n\ndef find_account(session: Session, owner: str) -> Account | None:\n    return session.scalars(select(Account).where(Account.owner == \"Missing\")).one_or_none()\n\n\ndef total_balance(session: Session) -> int:\n    return sum(cast(int, row.balance) for row in session.scalars(select(Account).order_by(Account.id)))\n"
+        }
+      ],
+      "rationale": "controlled sqlalchemy migration proposal"
+    },
+    "error": null,
+    "timestamp": "2026-09-21T01:05:24.301051+00:00"
+  },
+  {
+    "run_id": "c0d695b3e11b488abffb19a8861d0273",
+    "attempt_number": 1,
+    "component": "Failure Analyzer",
+    "model": "controlled-benchmark-test-double",
+    "prompt_name": "04_remaining_use_cases",
+    "prompt_version": "v1.1",
+    "input_metadata": {
+      "retry": 1,
+      "workflow_attempt": 1,
+      "context_files": [
+        "tests/test_ledger.py",
+        "tests/test_ledger.py",
+        "src/ledger/repository.py",
+        "src/ledger/repository.py",
+        "pyproject.toml",
+        "pyproject.toml",
+        "src/ledger/models.py",
+        "src/ledger/models.py",
+        "src/ledger/repository.py",
+        "src/ledger/models.py",
+        "tests/test_ledger.py",
+        "tests/test_ledger.py",
+        "tests/test_ledger.py",
+        "pyproject.toml",
+        "pyproject.toml",
+        "pyproject.toml",
+        "pyproject.toml",
+        "src/ledger/__init__.py"
+      ],
+      "characters": 13843
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "latency_seconds": 0.001671690999501152,
+    "estimated_cost_usd": 0.0,
+    "structured_output": {
+      "failure_type": "migration_behavior_regression",
+      "likely_root_cause": "migration candidate changed tested behavior",
+      "supporting_evidence": [
+        "real pytest regression output"
+      ],
+      "proposed_repair": "restore the tested behavior in the affected file",
+      "files_to_modify": [
+        "src/ledger/repository.py"
+      ],
+      "reason_for_each_file": [
+        {
+          "file": "src/ledger/repository.py",
+          "reason": "the regression exercises this migration boundary",
+          "supporting_evidence": "failing regression test and current diff",
+          "expected_effect": "restore the original business behavior",
+          "required_verification": "complete verification suite"
+        }
+      ],
+      "additional_context_needed": [],
+      "confidence": 0.95
+    },
+    "error": null,
+    "timestamp": "2026-09-21T01:05:40.213601+00:00"
+  },
+  {
+    "run_id": "c0d695b3e11b488abffb19a8861d0273",
+    "attempt_number": 2,
+    "component": "Repair Generator",
+    "model": "controlled-benchmark-test-double",
+    "prompt_name": "04_remaining_use_cases",
+    "prompt_version": "v1.1",
+    "input_metadata": {
+      "retry": 1,
+      "workflow_attempt": 2,
+      "context_files": [
+        "tests/test_ledger.py",
+        "tests/test_ledger.py",
+        "src/ledger/repository.py",
+        "src/ledger/repository.py",
+        "pyproject.toml",
+        "pyproject.toml",
+        "src/ledger/models.py",
+        "src/ledger/models.py",
+        "src/ledger/repository.py",
+        "src/ledger/models.py",
+        "tests/test_ledger.py",
+        "tests/test_ledger.py",
+        "tests/test_ledger.py",
+        "pyproject.toml",
+        "pyproject.toml",
+        "pyproject.toml",
+        "pyproject.toml",
+        "src/ledger/__init__.py"
+      ],
+      "characters": 11860
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "latency_seconds": 0.002060695998807205,
+    "estimated_cost_usd": 0.0,
+    "structured_output": {
+      "changes": [
+        {
+          "path": "src/ledger/repository.py",
+          "content": "from typing import cast\n\nfrom sqlalchemy import select\nfrom sqlalchemy.orm import Session\n\nfrom .models import Account\n\n\ndef add_account(session: Session, owner: str, balance: int) -> Account:\n    account = Account(owner=owner.strip(), balance=balance)\n    session.add(account)\n    session.commit()\n    return account\n\n\ndef find_account(session: Session, owner: str) -> Account | None:\n    return session.scalars(select(Account).where(Account.owner == owner)).one_or_none()\n\n\ndef total_balance(session: Session) -> int:\n    return sum(cast(int, row.balance) for row in session.scalars(select(Account).order_by(Account.id)))\n"
+        }
+      ],
+      "rationale": "approved repair of tested behavior"
+    },
+    "error": null,
+    "timestamp": "2026-09-21T01:05:40.288217+00:00"
+  }
+]

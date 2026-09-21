@@ -1,0 +1,170 @@
+[
+  {
+    "previous_state": "INITIAL",
+    "trigger": "request_created",
+    "component": "Orchestrator",
+    "next_state": "RECEIVED",
+    "attempt_number": 1,
+    "timestamp": "2026-09-21T01:09:12.151302+00:00"
+  },
+  {
+    "previous_state": "RECEIVED",
+    "trigger": "begin_capability_check",
+    "component": "Orchestrator",
+    "next_state": "SCOPE_CHECK",
+    "attempt_number": 1,
+    "timestamp": "2026-09-21T01:09:12.163543+00:00"
+  },
+  {
+    "previous_state": "SCOPE_CHECK",
+    "trigger": "supported",
+    "component": "Capability Gate",
+    "next_state": "ANALYZING_REPO",
+    "attempt_number": 1,
+    "timestamp": "2026-09-21T01:09:13.341154+00:00"
+  },
+  {
+    "previous_state": "ANALYZING_REPO",
+    "trigger": "analysis_complete",
+    "component": "Repository Analyzer",
+    "next_state": "CONTEXT_BUILDING",
+    "attempt_number": 1,
+    "timestamp": "2026-09-21T01:09:13.371507+00:00"
+  },
+  {
+    "previous_state": "CONTEXT_BUILDING",
+    "trigger": "context_selected",
+    "component": "Context Manager",
+    "next_state": "PLANNING",
+    "attempt_number": 1,
+    "timestamp": "2026-09-21T01:09:13.390988+00:00"
+  },
+  {
+    "previous_state": "PLANNING",
+    "trigger": "plan_validated",
+    "component": "Migration Planner",
+    "next_state": "PATCH_GENERATING",
+    "attempt_number": 1,
+    "timestamp": "2026-09-21T01:09:13.409401+00:00"
+  },
+  {
+    "previous_state": "PATCH_GENERATING",
+    "trigger": "proposal_validated",
+    "component": "Patch Generator",
+    "next_state": "PATCHING_SANDBOX",
+    "attempt_number": 1,
+    "timestamp": "2026-09-21T01:09:13.425810+00:00"
+  },
+  {
+    "previous_state": "PATCHING_SANDBOX",
+    "trigger": "sandbox_patch_applied",
+    "component": "Patch Tool",
+    "next_state": "VERIFYING_SANDBOX",
+    "attempt_number": 1,
+    "timestamp": "2026-09-21T01:09:13.525852+00:00"
+  },
+  {
+    "previous_state": "VERIFYING_SANDBOX",
+    "trigger": "code_verification_failed",
+    "component": "Verification Runner",
+    "next_state": "ANALYZING_FAILURE",
+    "attempt_number": 1,
+    "timestamp": "2026-09-21T01:09:24.521865+00:00"
+  },
+  {
+    "previous_state": "ANALYZING_FAILURE",
+    "trigger": "failure_analyzed",
+    "component": "Failure Analyzer",
+    "next_state": "REPAIR_PROPOSED",
+    "attempt_number": 1,
+    "timestamp": "2026-09-21T01:09:24.599322+00:00"
+  },
+  {
+    "previous_state": "REPAIR_PROPOSED",
+    "trigger": "ambiguous_scope",
+    "component": "Orchestrator",
+    "next_state": "AWAITING_REVIEW",
+    "attempt_number": 1,
+    "timestamp": "2026-09-21T01:09:24.611938+00:00"
+  },
+  {
+    "previous_state": "AWAITING_REVIEW",
+    "trigger": "reviewer_approved",
+    "component": "Change Reviewer",
+    "next_state": "REPAIR_APPROVED",
+    "attempt_number": 1,
+    "timestamp": "2026-09-21T01:09:24.649296+00:00"
+  },
+  {
+    "previous_state": "REPAIR_APPROVED",
+    "trigger": "repair_authorized",
+    "component": "Orchestrator",
+    "next_state": "REPAIRING",
+    "attempt_number": 2,
+    "timestamp": "2026-09-21T01:09:24.673010+00:00"
+  },
+  {
+    "previous_state": "REPAIRING",
+    "trigger": "repair_candidate_applied",
+    "component": "Repair Executor",
+    "next_state": "VERIFYING_SANDBOX",
+    "attempt_number": 2,
+    "timestamp": "2026-09-21T01:09:24.736123+00:00"
+  },
+  {
+    "previous_state": "VERIFYING_SANDBOX",
+    "trigger": "repair_verification_failed",
+    "component": "Verification Runner",
+    "next_state": "ANALYZING_FAILURE",
+    "attempt_number": 2,
+    "timestamp": "2026-09-21T01:09:33.685087+00:00"
+  },
+  {
+    "previous_state": "ANALYZING_FAILURE",
+    "trigger": "failure_analyzed",
+    "component": "Failure Analyzer",
+    "next_state": "REPAIR_PROPOSED",
+    "attempt_number": 2,
+    "timestamp": "2026-09-21T01:09:33.721188+00:00"
+  },
+  {
+    "previous_state": "REPAIR_PROPOSED",
+    "trigger": "ambiguous_scope",
+    "component": "Orchestrator",
+    "next_state": "AWAITING_REVIEW",
+    "attempt_number": 2,
+    "timestamp": "2026-09-21T01:09:33.730226+00:00"
+  },
+  {
+    "previous_state": "AWAITING_REVIEW",
+    "trigger": "reviewer_approved",
+    "component": "Change Reviewer",
+    "next_state": "REPAIR_APPROVED",
+    "attempt_number": 2,
+    "timestamp": "2026-09-21T01:09:33.759408+00:00"
+  },
+  {
+    "previous_state": "REPAIR_APPROVED",
+    "trigger": "repair_authorized",
+    "component": "Orchestrator",
+    "next_state": "REPAIRING",
+    "attempt_number": 3,
+    "timestamp": "2026-09-21T01:09:33.781295+00:00"
+  },
+  {
+    "previous_state": "REPAIRING",
+    "trigger": "repair_candidate_applied",
+    "component": "Repair Executor",
+    "next_state": "VERIFYING_SANDBOX",
+    "attempt_number": 3,
+    "timestamp": "2026-09-21T01:09:33.842293+00:00"
+  },
+  {
+    "previous_state": "VERIFYING_SANDBOX",
+    "trigger": "attempt_limit_reached",
+    "component": "Orchestrator",
+    "next_state": "NEEDS_HUMAN_REVIEW",
+    "attempt_number": 3,
+    "timestamp": "2026-09-21T01:09:44.521516+00:00"
+  }
+]

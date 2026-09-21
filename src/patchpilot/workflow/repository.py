@@ -7,13 +7,14 @@ import subprocess
 import sys
 from pathlib import Path
 
-if sys.version_info >= (3, 11):
-    import tomllib  # type: ignore[import-not-found]
-else:
-    import tomli as tomllib  # type: ignore[import-not-found]
-
 from patchpilot.tools.repository import discover_files, inspect_python, search_text
 
+from .benchmarks import (
+    declared_pin,
+    dependency_verification_command,
+    for_goal,
+    for_root,
+)
 from .schema import (
     CapabilityDecision,
     ContextBundle,
@@ -22,17 +23,13 @@ from .schema import (
     RepositoryAnalysis,
 )
 
-V1_PATTERN = re.compile(
-    r"\b(?:validator|root_validator|parse_obj|anystr_strip_whitespace)\b|\.dict\(|class Config\b"
-)
-SEARCH_PATTERN = r"pydantic|validator|parse_obj|\.dict\(|Config|model_validate|model_dump"
-
 
 def capability(request: MigrationRequest, target: Path,
                verification_python: Path | None = None) -> CapabilityDecision:
     """Check the tools through the interpreter that will run verification."""
     reasons: list[str] = []
-    if request.language != "Python" or "Pydantic v1 to Pydantic v2" not in request.migration_goal:
+    family = for_goal(request.migration_goal)
+    if request.language != "Python" or family is None or for_root(target) != family:
         reasons.append("unsupported language or migration")
     if not target.is_dir() or not (target / "src").is_dir():
         reasons.append("target or sandbox source missing")
@@ -52,6 +49,16 @@ def capability(request: MigrationRequest, target: Path,
         else:
             if result.returncode != 0:
                 reasons.append(f"{module} unavailable in verification environment")
+    if family is not None:
+        try:
+            result = subprocess.run(
+                dependency_verification_command(python, family), text=True,
+                capture_output=True, check=False, timeout=15,
+            )
+            if result.returncode:
+                reasons.append("target dependency unavailable in verification environment")
+        except (OSError, subprocess.TimeoutExpired):
+            reasons.append("target dependency unavailable in verification environment")
     return CapabilityDecision(
         supported=not reasons,
         reasons=reasons or ["supported migration and verification environment"],
@@ -69,12 +76,12 @@ def analyze(root: Path) -> RepositoryAnalysis:
     if not dependencies:
         raise ValueError("dependency file missing")
     dependency_file = str(dependencies[0])
-    data = tomllib.loads((root / dependency_file).read_text())
-    declared = data.get("project", {}).get("dependencies", [])
-    version = next(
-        (str(item).removeprefix("pydantic") for item in declared
-         if str(item).startswith("pydantic")), "unknown",
-    )
+    family = for_root(root)
+    if family is None:
+        raise ValueError("unsupported fixture dependency")
+    pin = declared_pin(root, family) or "unknown"
+    version = pin[len(family.dependency_name):] if pin != "unknown" else "unknown"
+    usage_pattern = re.compile(family.api_usage_pattern)
     sources = [str(path) for path in files["source"]]
     tests = [str(path) for path in files["test"]]
     imports: dict[str, list[str]] = {}
@@ -83,10 +90,10 @@ def analyze(root: Path) -> RepositoryAnalysis:
     usages: dict[str, list[str]] = {}
     related: dict[str, list[str]] = {}
     evidence: dict[str, list[str]] = {name: [] for name in [dependency_file, *sources, *tests]}
-    evidence[dependency_file].append(f"TOML dependency: pydantic{version}")
+    evidence[dependency_file].append(f"TOML dependency: {pin}")
 
     # Prompt 1's search primitive uses rg when installed and a deterministic fallback otherwise.
-    for match in search_text(root, SEARCH_PATTERN):
+    for match in search_text(root, family.search_pattern):
         name = _match_path(match)
         if name in evidence:
             evidence[name].append(f"rg:{match}")
@@ -97,17 +104,19 @@ def analyze(root: Path) -> RepositoryAnalysis:
         imports[name] = list(structure.imports)
         classes[name] = [f"{symbol}:{','.join(bases)}" for symbol, bases in structure.classes]
         decorators[name] = [f"{symbol}:{','.join(decs)}" for symbol, decs in structure.functions if decs]
-        usages[name] = sorted(set(V1_PATTERN.findall(path.read_text())))
+        usages[name] = sorted(set(usage_pattern.findall(path.read_text())))
         for symbol, bases in structure.classes:
             evidence[name].append(f"AST class {symbol} inherits {', '.join(bases) or 'object'}")
         for imported in structure.imports:
-            if "pydantic" in imported:
+            if family.dependency_name.lower() in imported.lower():
                 evidence[name].append(f"AST import {imported}")
         for symbol, decs in structure.functions:
             if decs:
                 evidence[name].append(f"AST decorator {symbol}: {', '.join(decs)}")
         related[name] = []
-        for symbol, _bases in structure.classes:
+        symbols = [symbol for symbol, _bases in structure.classes]
+        symbols.extend(symbol for symbol, _decs in structure.functions)
+        for symbol in symbols:
             for match in search_text(root, rf"\b{re.escape(symbol)}\b"):
                 reference = _match_path(match)
                 if reference in tests:
@@ -119,11 +128,15 @@ def analyze(root: Path) -> RepositoryAnalysis:
         structure = inspect_python(root / name)
         evidence[name].append(f"AST tests: {', '.join(symbol for symbol, _ in structure.functions)}")
     return RepositoryAnalysis(
-        dependency_file=dependency_file, pydantic_version=version,
+        dependency_file=dependency_file,
+        dependency_name=family.dependency_name, dependency_version=version,
+        source_version=family.source_version, target_version=family.target_version,
+        migration_family=family.name, migration_api_pattern=family.api_usage_pattern,
+        shared_base_symbols=list(family.shared_base_symbols),
         source_files=sources, test_files=tests,
         configuration_files=[str(path) for path in files["configuration"]],
         imports=imports, classes=classes, decorators=decorators,
-        v1_usages=usages, related_tests=related, evidence=evidence,
+        migration_api_usages=usages, related_tests=related, evidence=evidence,
     )
 
 
@@ -132,25 +145,27 @@ def _candidate(path: str, lines: list[str], start: int, end: int,
     content = "\n".join(lines[start - 1:end]) + "\n"
     reasons: list[str] = []
     score = 0
-    if path == analysis.dependency_file and "pydantic" in content:
+    dependency = analysis.dependency_name
+    usage_pattern = re.compile(analysis.migration_api_pattern)
+    if path == analysis.dependency_file and dependency.lower() in content.lower():
         score += 120
-        reasons.append("Pydantic dependency declaration")
-    if V1_PATTERN.search(content):
+        reasons.append(f"{dependency} dependency declaration")
+    if usage_pattern.search(content):
         score += 115
         reasons.append("direct migrated API usage")
-    if "pydantic" in content and kind == "import":
+    if dependency.lower() in content.lower() and kind == "import":
         score += 80
-        reasons.append("direct Pydantic import")
-    if "ShopModel" in content and kind == "class":
+        reasons.append(f"direct {dependency} import")
+    if (kind == "class" and any(symbol in content for symbol in analysis.shared_base_symbols)):
         score += 75
-        reasons.append("shared model inheritance or configuration")
+        reasons.append("shared base inheritance or configuration")
     if path in analysis.test_files:
         related = any(path in refs for refs in analysis.related_tests.values())
         score += 65 if related else 5
         reasons.append("test exercising affected model" if related else "test discovery")
-    if kind == "function" and "validator" in content:
+    if kind == "function" and usage_pattern.search(content):
         score += 20
-        reasons.append("validator function")
+        reasons.append("migration API function")
     if not reasons:
         reasons.append(f"{kind} near migration evidence" if analysis.evidence.get(path)
                        else f"{kind} candidate")

@@ -1,0 +1,126 @@
+[
+  {
+    "run_id": "99c40ecd674f432bb202dfcaa56b03b8",
+    "attempt_number": 1,
+    "component": "Migration Planner",
+    "model": "controlled-benchmark-test-double",
+    "prompt_name": "04_remaining_use_cases",
+    "prompt_version": "v1.1",
+    "input_metadata": {
+      "retry": 1,
+      "workflow_attempt": 1,
+      "context_files": [
+        "tests/test_remote.py",
+        "src/remote/client.py",
+        "pyproject.toml",
+        "pyproject.toml",
+        "src/remote/client.py",
+        "src/remote/service.py",
+        "tests/test_remote.py",
+        "tests/test_remote.py",
+        "tests/test_remote.py",
+        "tests/test_remote.py",
+        "pyproject.toml",
+        "pyproject.toml",
+        "pyproject.toml",
+        "pyproject.toml",
+        "pyproject.toml",
+        "pyproject.toml",
+        "pyproject.toml",
+        "src/remote/__init__.py"
+      ],
+      "characters": 8405
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "latency_seconds": 0.002261666999402223,
+    "estimated_cost_usd": 0.0,
+    "structured_output": {
+      "summary": "httpx supported-version migration",
+      "planned_changes": [
+        {
+          "file": "pyproject.toml",
+          "symbol": "dependency or affected application behavior",
+          "reason": "old API or dependency compatibility",
+          "change": "migrate to supported API while preserving behavior",
+          "expected_effect": "existing regression behavior remains"
+        },
+        {
+          "file": "src/remote/client.py",
+          "symbol": "dependency or affected application behavior",
+          "reason": "old API or dependency compatibility",
+          "change": "migrate to supported API while preserving behavior",
+          "expected_effect": "existing regression behavior remains"
+        }
+      ],
+      "affected_files": [
+        "pyproject.toml",
+        "src/remote/client.py"
+      ],
+      "risks": [
+        "behavioral regression at migration boundary"
+      ],
+      "validation_plan": [
+        "migration-specific",
+        "pytest",
+        "mypy",
+        "ruff",
+        "runtime/import"
+      ]
+    },
+    "error": null,
+    "timestamp": "2026-09-21T01:06:06.923216+00:00"
+  },
+  {
+    "run_id": "99c40ecd674f432bb202dfcaa56b03b8",
+    "attempt_number": 1,
+    "component": "Patch Generator",
+    "model": "controlled-benchmark-test-double",
+    "prompt_name": "04_remaining_use_cases",
+    "prompt_version": "v1.1",
+    "input_metadata": {
+      "retry": 1,
+      "workflow_attempt": 1,
+      "context_files": [
+        "tests/test_remote.py",
+        "src/remote/client.py",
+        "pyproject.toml",
+        "pyproject.toml",
+        "src/remote/client.py",
+        "src/remote/service.py",
+        "tests/test_remote.py",
+        "tests/test_remote.py",
+        "tests/test_remote.py",
+        "tests/test_remote.py",
+        "pyproject.toml",
+        "pyproject.toml",
+        "pyproject.toml",
+        "pyproject.toml",
+        "pyproject.toml",
+        "pyproject.toml",
+        "pyproject.toml",
+        "src/remote/__init__.py"
+      ],
+      "characters": 6349
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "latency_seconds": 0.0020879120002064155,
+    "estimated_cost_usd": 0.0,
+    "structured_output": {
+      "changes": [
+        {
+          "path": "pyproject.toml",
+          "content": "[build-system]\nrequires = [\"setuptools>=68\"]\nbuild-backend = \"setuptools.build_meta\"\n[project]\nname = \"patchpilot-httpx-027-fixture\"\nversion = \"0.1.0\"\nrequires-python = \">=3.10\"\ndependencies = [\"httpx==0.28.1\"]\n[tool.setuptools.packages.find]\nwhere = [\"src\"]\n[tool.pytest.ini_options]\ntestpaths = [\"tests\"]\n[tool.mypy]\npython_version = \"3.10\"\nmypy_path = \"src\"\nignore_missing_imports = true\ncheck_untyped_defs = true\n[tool.ruff]\nline-length = 88\ntarget-version = \"py310\"\n"
+        },
+        {
+          "path": "src/remote/client.py",
+          "content": "import httpx\n\n\ndef make_client(transport: httpx.BaseTransport) -> httpx.Client:\n    return httpx.Client(transport=transport, trust_env=False,\n                        headers={\"X-App\": \"PatchPilot\"})\n"
+        }
+      ],
+      "rationale": "controlled httpx migration proposal"
+    },
+    "error": null,
+    "timestamp": "2026-09-21T01:06:06.939800+00:00"
+  }
+]

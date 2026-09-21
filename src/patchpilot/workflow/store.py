@@ -1,8 +1,10 @@
 """Durable run, transition, and model-call records."""
 
+import json
 import sqlite3
 from pathlib import Path
 
+from .benchmarks import for_goal
 from .schema import ModelCallRecord, RunRecord, State, StateTransitionRecord
 from .state import transition
 
@@ -39,7 +41,25 @@ class RunStore:
             row = db.execute("SELECT data FROM runs WHERE run_id=?", (run_id,)).fetchone()
         if row is None:
             raise KeyError(run_id)
-        return RunRecord.parse_raw(row[0])
+        data = json.loads(row[0])
+        # Older Prompt 2/3 records predate the generic family fields.
+        family = for_goal(data["request"]["migration_goal"])
+        if family is not None:
+            data.setdefault("migration_family", family.name)
+            data.setdefault("use_case", family.use_case)
+        analysis = data.get("analysis")
+        if analysis is not None and family is not None:
+            analysis.pop("pydantic_version", None)
+            if "v1_usages" in analysis:
+                analysis["migration_api_usages"] = analysis.pop("v1_usages")
+            analysis.setdefault("dependency_name", family.dependency_name)
+            analysis.setdefault("dependency_version", "unknown")
+            analysis.setdefault("migration_family", family.name)
+            analysis.setdefault("migration_api_pattern", family.api_usage_pattern)
+            analysis.setdefault("source_version", family.source_version)
+            analysis.setdefault("target_version", family.target_version)
+            analysis.setdefault("shared_base_symbols", list(family.shared_base_symbols))
+        return RunRecord.parse_obj(data)
 
     def move(self, run: RunRecord, next_state: State, trigger: str,
              component: str) -> StateTransitionRecord:

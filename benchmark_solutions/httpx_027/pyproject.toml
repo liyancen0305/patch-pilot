@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+[project]
+name = "patchpilot-httpx-027-fixture"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = ["httpx==0.28.1"]
+[tool.setuptools.packages.find]
+where = ["src"]
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+[tool.mypy]
+python_version = "3.10"
+mypy_path = "src"
+ignore_missing_imports = true
+check_untyped_defs = true
+[tool.ruff]
+line-length = 88
+target-version = "py310"

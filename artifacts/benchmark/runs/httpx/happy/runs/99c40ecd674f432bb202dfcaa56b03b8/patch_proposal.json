@@ -1,0 +1,13 @@
+{
+  "changes": [
+    {
+      "path": "pyproject.toml",
+      "content": "[build-system]\nrequires = [\"setuptools>=68\"]\nbuild-backend = \"setuptools.build_meta\"\n[project]\nname = \"patchpilot-httpx-027-fixture\"\nversion = \"0.1.0\"\nrequires-python = \">=3.10\"\ndependencies = [\"httpx==0.28.1\"]\n[tool.setuptools.packages.find]\nwhere = [\"src\"]\n[tool.pytest.ini_options]\ntestpaths = [\"tests\"]\n[tool.mypy]\npython_version = \"3.10\"\nmypy_path = \"src\"\nignore_missing_imports = true\ncheck_untyped_defs = true\n[tool.ruff]\nline-length = 88\ntarget-version = \"py310\"\n"
+    },
+    {
+      "path": "src/remote/client.py",
+      "content": "import httpx\n\n\ndef make_client(transport: httpx.BaseTransport) -> httpx.Client:\n    return httpx.Client(transport=transport, trust_env=False,\n                        headers={\"X-App\": \"PatchPilot\"})\n"
+    }
+  ],
+  "rationale": "controlled httpx migration proposal"
+}

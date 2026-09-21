@@ -1,0 +1,206 @@
+{
+  "items": [
+    {
+      "path": "tests/test_remote.py",
+      "location": "1-1",
+      "symbol": "import httpx",
+      "start_line": 1,
+      "end_line": 1,
+      "content": "import httpx\n",
+      "score": 145,
+      "reason": "direct httpx import; test exercising affected model",
+      "token_estimate": 3
+    },
+    {
+      "path": "src/remote/client.py",
+      "location": "4-6",
+      "symbol": "make_client",
+      "start_line": 4,
+      "end_line": 6,
+      "content": "def make_client(transport: httpx.BaseTransport) -> httpx.Client:\n    return httpx.Client(proxies=None, transport=transport, trust_env=False,\n                        headers={\"X-App\": \"PatchPilot\"})\n",
+      "score": 135,
+      "reason": "direct migrated API usage; migration API function",
+      "token_estimate": 49
+    },
+    {
+      "path": "pyproject.toml",
+      "location": "5-5",
+      "symbol": "dependency/configuration",
+      "start_line": 5,
+      "end_line": 5,
+      "content": "name = \"patchpilot-httpx-027-fixture\"\n",
+      "score": 120,
+      "reason": "httpx dependency declaration",
+      "token_estimate": 9
+    },
+    {
+      "path": "pyproject.toml",
+      "location": "8-8",
+      "symbol": "dependency/configuration",
+      "start_line": 8,
+      "end_line": 8,
+      "content": "dependencies = [\"httpx==0.27.2\"]\n",
+      "score": 120,
+      "reason": "httpx dependency declaration",
+      "token_estimate": 8
+    },
+    {
+      "path": "src/remote/client.py",
+      "location": "1-1",
+      "symbol": "import httpx",
+      "start_line": 1,
+      "end_line": 1,
+      "content": "import httpx\n",
+      "score": 80,
+      "reason": "direct httpx import",
+      "token_estimate": 3
+    },
+    {
+      "path": "src/remote/service.py",
+      "location": "1-1",
+      "symbol": "import httpx",
+      "start_line": 1,
+      "end_line": 1,
+      "content": "import httpx\n",
+      "score": 80,
+      "reason": "direct httpx import",
+      "token_estimate": 3
+    },
+    {
+      "path": "tests/test_remote.py",
+      "location": "2-2",
+      "symbol": "import pytest",
+      "start_line": 2,
+      "end_line": 2,
+      "content": "import pytest\n",
+      "score": 65,
+      "reason": "test exercising affected model",
+      "token_estimate": 3
+    },
+    {
+      "path": "tests/test_remote.py",
+      "location": "4-4",
+      "symbol": "from remote.service import fetch_profile",
+      "start_line": 4,
+      "end_line": 4,
+      "content": "from remote.service import fetch_profile\n",
+      "score": 65,
+      "reason": "test exercising affected model",
+      "token_estimate": 10
+    },
+    {
+      "path": "tests/test_remote.py",
+      "location": "7-12",
+      "symbol": "test_profile_header_and_name",
+      "start_line": 7,
+      "end_line": 12,
+      "content": "def test_profile_header_and_name() -> None:\n    def handle(request: httpx.Request) -> httpx.Response:\n        assert request.headers[\"X-App\"] == \"PatchPilot\"\n        assert request.url.path == \"/users/7\"\n        return httpx.Response(200, json={\"name\": \" Ada \"})\n    assert fetch_profile(httpx.MockTransport(handle), 7) == \"Ada\"\n",
+      "score": 65,
+      "reason": "test exercising affected model",
+      "token_estimate": 82
+    },
+    {
+      "path": "tests/test_remote.py",
+      "location": "15-18",
+      "symbol": "test_http_error_propagates",
+      "start_line": 15,
+      "end_line": 18,
+      "content": "def test_http_error_propagates() -> None:\n    transport = httpx.MockTransport(lambda request: httpx.Response(404))\n    with pytest.raises(httpx.HTTPStatusError):\n        fetch_profile(transport, 7)\n",
+      "score": 65,
+      "reason": "test exercising affected model",
+      "token_estimate": 49
+    },
+    {
+      "path": "pyproject.toml",
+      "location": "1-1",
+      "symbol": "dependency/configuration",
+      "start_line": 1,
+      "end_line": 1,
+      "content": "[build-system]\n",
+      "score": 0,
+      "reason": "config near migration evidence",
+      "token_estimate": 3
+    },
+    {
+      "path": "pyproject.toml",
+      "location": "2-2",
+      "symbol": "dependency/configuration",
+      "start_line": 2,
+      "end_line": 2,
+      "content": "requires = [\"setuptools>=68\"]\n",
+      "score": 0,
+      "reason": "config near migration evidence",
+      "token_estimate": 7
+    },
+    {
+      "path": "pyproject.toml",
+      "location": "3-3",
+      "symbol": "dependency/configuration",
+      "start_line": 3,
+      "end_line": 3,
+      "content": "build-backend = \"setuptools.build_meta\"\n",
+      "score": 0,
+      "reason": "config near migration evidence",
+      "token_estimate": 10
+    },
+    {
+      "path": "pyproject.toml",
+      "location": "4-4",
+      "symbol": "dependency/configuration",
+      "start_line": 4,
+      "end_line": 4,
+      "content": "[project]\n",
+      "score": 0,
+      "reason": "config near migration evidence",
+      "token_estimate": 2
+    },
+    {
+      "path": "pyproject.toml",
+      "location": "6-6",
+      "symbol": "dependency/configuration",
+      "start_line": 6,
+      "end_line": 6,
+      "content": "version = \"0.1.0\"\n",
+      "score": 0,
+      "reason": "config near migration evidence",
+      "token_estimate": 4
+    },
+    {
+      "path": "pyproject.toml",
+      "location": "7-7",
+      "symbol": "dependency/configuration",
+      "start_line": 7,
+      "end_line": 7,
+      "content": "requires-python = \">=3.10\"\n",
+      "score": 0,
+      "reason": "config near migration evidence",
+      "token_estimate": 6
+    },
+    {
+      "path": "pyproject.toml",
+      "location": "9-9",
+      "symbol": "dependency/configuration",
+      "start_line": 9,
+      "end_line": 9,
+      "content": "[tool.setuptools.packages.find]\n",
+      "score": 0,
+      "reason": "config near migration evidence",
+      "token_estimate": 8
+    },
+    {
+      "path": "src/remote/__init__.py",
+      "location": "1-1",
+      "symbol": "from .service import fetch_profile",
+      "start_line": 1,
+      "end_line": 1,
+      "content": "from .service import fetch_profile\n",
+      "score": 0,
+      "reason": "import candidate",
+      "token_estimate": 8
+    }
+  ],
+  "total_token_estimate": 267,
+  "max_files": 5,
+  "max_snippets": 18,
+  "max_context_tokens": 5000
+}

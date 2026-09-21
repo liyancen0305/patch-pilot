@@ -1,0 +1,33 @@
+diff --git a/pyproject.toml b/pyproject.toml
+index b7888f6..145b6ba 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
+ name = "patchpilot-openai-028-fixture"
+ version = "0.1.0"
+ requires-python = ">=3.10"
+-dependencies = ["openai==0.28.1"]
++dependencies = ["openai==1.109.1"]
+ [tool.setuptools.packages.find]
+ where = ["src"]
+ [tool.pytest.ini_options]
+diff --git a/src/assistant_app/gateway.py b/src/assistant_app/gateway.py
+index 35fa5a7..7e119d0 100644
+--- a/src/assistant_app/gateway.py
++++ b/src/assistant_app/gateway.py
+@@ -1,10 +1,10 @@
+ from typing import Any
+ 
+-import openai
++from openai import OpenAI
+ 
+ 
+ def complete(prompt: str, gateway: Any = None) -> str:
+-    api = gateway or openai.ChatCompletion
+-    response = api.create(model="gpt-3.5-turbo",
+-                          messages=[{"role": "user", "content": prompt}])
+-    return str(response["choices"][0]["message"]["content"])
++    client = gateway or OpenAI()
++    response = client.chat.completions.create(
++        model="gpt-3.5-turbo", messages=[{"role": "user", "content": prompt}])
++    return str(response.choices[0].message.content)

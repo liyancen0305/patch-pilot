@@ -76,7 +76,7 @@ def test_successful_verification_promotes_candidate() -> None:
 @pytest.mark.skipif(not EXTERNAL_PYTHON.exists(), reason="external v2 runtime absent")
 def test_capability_uses_external_verification_python(tmp_path: Path) -> None:
     target = create_target(FIXTURE, tmp_path)
-    request = MigrationRequest(repository=str(target))
+    request = MigrationRequest(repository=str(target), migration_goal="Upgrade Pydantic v1 to Pydantic v2")
     assert EXTERNAL_PYTHON != Path(sys.executable)
     decision = capability(request, target, EXTERNAL_PYTHON)
     assert decision.supported, decision.reasons
@@ -86,7 +86,7 @@ def test_capability_rejects_missing_tools_in_configured_environment(tmp_path: Pa
     target = create_target(FIXTURE, tmp_path)
     bare = tmp_path / "bare-python"
     venv.EnvBuilder(with_pip=False).create(bare)
-    decision = capability(MigrationRequest(repository=str(target)), target,
+    decision = capability(MigrationRequest(repository=str(target), migration_goal="Upgrade Pydantic v1 to Pydantic v2"), target,
                           bare / "bin/python")
     assert not decision.supported
     assert any("pytest unavailable" in reason for reason in decision.reasons)
@@ -104,7 +104,7 @@ def test_analyzer_records_rg_ast_toml_and_test_reference_evidence(monkeypatch: p
     monkeypatch.setattr(repository, "search_text", recording_search)
     result = analyze(FIXTURE)
     assert len(calls) > 1
-    assert result.pydantic_version == "==1.10.26"
+    assert result.dependency_version == "==1.10.26"
     assert any("TOML dependency" in item for item in result.evidence["pyproject.toml"])
     assert any(item.startswith("rg:") for item in result.evidence["src/shop/orders.py"])
     assert any(item.startswith("AST class") for item in result.evidence["src/shop/orders.py"])
@@ -131,8 +131,8 @@ def test_context_snippet_ranking_and_independent_budgets(tmp_path: Path) -> None
     assert budgeted.total_token_estimate <= tiny_budget
     assert len(budgeted.items) < len(ranked.items)
     store = RunStore(tmp_path / "runs.db")
-    run = RunRecord(run_id="context-test", request=MigrationRequest(repository=str(FIXTURE)),
-                    current_state=State.RECEIVED, repository_identifiers={},
+    run = RunRecord(run_id="context-test", request=MigrationRequest(repository=str(FIXTURE), migration_goal="Upgrade Pydantic v1 to Pydantic v2"),
+                    current_state=State.RECEIVED, repository_identifiers={}, use_case=1, migration_family="pydantic",
                     context=ranked, started_at="2026-01-01T00:00:00Z")
     store.save(run)
     reloaded = store.load(run.run_id)

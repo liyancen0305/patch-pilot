@@ -1,0 +1,33 @@
+{
+  "summary": "celery supported-version migration",
+  "planned_changes": [
+    {
+      "file": "pyproject.toml",
+      "symbol": "dependency or affected application behavior",
+      "reason": "old API or dependency compatibility",
+      "change": "migrate to supported API while preserving behavior",
+      "expected_effect": "existing regression behavior remains"
+    },
+    {
+      "file": "src/jobs/config.py",
+      "symbol": "dependency or affected application behavior",
+      "reason": "old API or dependency compatibility",
+      "change": "migrate to supported API while preserving behavior",
+      "expected_effect": "existing regression behavior remains"
+    }
+  ],
+  "affected_files": [
+    "pyproject.toml",
+    "src/jobs/config.py"
+  ],
+  "risks": [
+    "behavioral regression at migration boundary"
+  ],
+  "validation_plan": [
+    "migration-specific",
+    "pytest",
+    "mypy",
+    "ruff",
+    "runtime/import"
+  ]
+}

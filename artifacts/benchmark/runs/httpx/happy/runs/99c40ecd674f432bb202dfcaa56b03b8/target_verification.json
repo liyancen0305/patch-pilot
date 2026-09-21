@@ -1,0 +1,71 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "name": "HTTPX 0.28 migration",
+      "command": [],
+      "exit_code": 0,
+      "output": "dependency and old API scan"
+    },
+    {
+      "name": "installed HTTPX 0.28",
+      "command": [
+        "/tmp/patchpilot-p4-httpx-new/bin/python",
+        "-c",
+        "import importlib.metadata,sys; from packaging.specifiers import SpecifierSet; sys.exit(importlib.metadata.version(sys.argv[1]) not in SpecifierSet(sys.argv[2]))",
+        "httpx",
+        "==0.28.1"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "name": "pytest",
+      "command": [
+        "/tmp/patchpilot-p4-httpx-new/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-p",
+        "no:cacheprovider"
+      ],
+      "exit_code": 0,
+      "output": "..                                                                       [100%]\n2 passed in 0.22s\n"
+    },
+    {
+      "name": "mypy",
+      "command": [
+        "/tmp/patchpilot-p4-httpx-new/bin/python",
+        "-m",
+        "mypy",
+        "src",
+        "tests"
+      ],
+      "exit_code": 0,
+      "output": "Success: no issues found in 4 source files\n"
+    },
+    {
+      "name": "ruff",
+      "command": [
+        "/tmp/patchpilot-p4-httpx-new/bin/python",
+        "-m",
+        "ruff",
+        "check",
+        "src",
+        "tests"
+      ],
+      "exit_code": 0,
+      "output": "All checks passed!\n"
+    },
+    {
+      "name": "runtime/import",
+      "command": [
+        "/tmp/patchpilot-p4-httpx-new/bin/python",
+        "-c",
+        "import remote; assert remote"
+      ],
+      "exit_code": 0,
+      "output": ""
+    }
+  ]
+}

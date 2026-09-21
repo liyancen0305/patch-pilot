@@ -1,0 +1,24 @@
+[
+  {
+    "failure_type": "migration_behavior_regression",
+    "likely_root_cause": "migration candidate changed tested behavior",
+    "supporting_evidence": [
+      "real pytest regression output"
+    ],
+    "proposed_repair": "restore the tested behavior in the affected file",
+    "files_to_modify": [
+      "src/ledger/repository.py"
+    ],
+    "reason_for_each_file": [
+      {
+        "file": "src/ledger/repository.py",
+        "reason": "the regression exercises this migration boundary",
+        "supporting_evidence": "failing regression test and current diff",
+        "expected_effect": "restore the original business behavior",
+        "required_verification": "complete verification suite"
+      }
+    ],
+    "additional_context_needed": [],
+    "confidence": 0.95
+  }
+]

@@ -14,3 +14,8 @@ artifacts/controlled-*/verified.patch
 artifacts/controlled-*/sandbox-snapshot.bundle
 
 artifacts/runs/
+
+artifacts/benchmark/runs/*/*/target/
+artifacts/benchmark/runs/*/*/runs.db
+artifacts/benchmark/runs/*/*/verified.patch
+artifacts/benchmark/runs/*/*/sandbox-snapshot.bundle

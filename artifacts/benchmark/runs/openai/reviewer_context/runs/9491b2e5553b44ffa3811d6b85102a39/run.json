@@ -1,0 +1,1214 @@
+{
+  "run_id": "9491b2e5553b44ffa3811d6b85102a39",
+  "request": {
+    "repository": "/home/liyan/Documents/github/patch-pilot/artifacts/benchmark/runs/openai/reviewer_context/target",
+    "migration_goal": "Upgrade OpenAI Python SDK 0.28 to 1.x",
+    "language": "Python",
+    "constraints": [
+      "remain in Python",
+      "preserve existing behavior",
+      "do not modify unrelated files",
+      "do not deploy automatically",
+      "do not merge automatically"
+    ]
+  },
+  "current_state": "READY_FOR_PR",
+  "prompt_name": "04_remaining_use_cases",
+  "prompt_version": "v1.1",
+  "attempt_number": 2,
+  "repository_identifiers": {
+    "canonical": "/home/liyan/Documents/github/patch-pilot/fixtures/openai_028",
+    "migration_family": "openai",
+    "use_case": "4",
+    "target": "/home/liyan/Documents/github/patch-pilot/artifacts/benchmark/runs/openai/reviewer_context/target",
+    "target_main_commit": "f5838868dbbf28e991fc692ed2da2f4a23786ad6",
+    "sandbox_bundle": "/home/liyan/Documents/github/patch-pilot/artifacts/benchmark/runs/openai/reviewer_context/sandbox-snapshot.bundle",
+    "target_commit": "8b69aab962faf36f075ff990ef678aca44dcf233"
+  },
+  "use_case": 4,
+  "migration_family": "openai",
+  "model_type": "test_double",
+  "analysis": {
+    "dependency_file": "pyproject.toml",
+    "dependency_name": "openai",
+    "dependency_version": "==0.28.1",
+    "source_version": "0.28.1",
+    "target_version": "1.109.1",
+    "migration_family": "openai",
+    "migration_api_pattern": "openai\\.ChatCompletion",
+    "shared_base_symbols": [],
+    "source_files": [
+      "src/assistant_app/__init__.py",
+      "src/assistant_app/gateway.py",
+      "src/assistant_app/service.py"
+    ],
+    "test_files": [
+      "tests/test_assistant_app.py"
+    ],
+    "configuration_files": [],
+    "imports": {
+      "src/assistant_app/__init__.py": [
+        ".service"
+      ],
+      "src/assistant_app/gateway.py": [
+        "typing",
+        "openai"
+      ],
+      "src/assistant_app/service.py": [
+        "typing",
+        ".gateway"
+      ]
+    },
+    "classes": {
+      "src/assistant_app/__init__.py": [],
+      "src/assistant_app/gateway.py": [],
+      "src/assistant_app/service.py": []
+    },
+    "decorators": {
+      "src/assistant_app/__init__.py": [],
+      "src/assistant_app/gateway.py": [],
+      "src/assistant_app/service.py": []
+    },
+    "migration_api_usages": {
+      "src/assistant_app/__init__.py": [],
+      "src/assistant_app/gateway.py": [
+        "openai.ChatCompletion"
+      ],
+      "src/assistant_app/service.py": []
+    },
+    "related_tests": {
+      "src/assistant_app/__init__.py": [],
+      "src/assistant_app/gateway.py": [],
+      "src/assistant_app/service.py": [
+        "tests/test_assistant_app.py"
+      ]
+    },
+    "evidence": {
+      "pyproject.toml": [
+        "TOML dependency: openai==0.28.1",
+        "rg:./pyproject.toml:5:name = \"patchpilot-openai-028-fixture\"",
+        "rg:./pyproject.toml:8:dependencies = [\"openai==0.28.1\"]"
+      ],
+      "src/assistant_app/__init__.py": [],
+      "src/assistant_app/gateway.py": [
+        "rg:./src/assistant_app/gateway.py:3:import openai",
+        "rg:./src/assistant_app/gateway.py:7:    api = gateway or openai.ChatCompletion",
+        "AST import openai"
+      ],
+      "src/assistant_app/service.py": [],
+      "tests/test_assistant_app.py": [
+        "rg reference to summarize: ./tests/test_assistant_app.py:4:from assistant_app import summarize",
+        "rg reference to summarize: ./tests/test_assistant_app.py:26:    assert summarize(\"  migration  \", gateway=fake) == \"concise summary\"",
+        "AST tests: test_summarize_preserves_prompt_and_output, __init__, __init__, create"
+      ]
+    }
+  },
+  "context": {
+    "items": [
+      {
+        "path": "tests/test_assistant_app.py",
+        "location": "1-1",
+        "symbol": "from types import SimpleNamespace",
+        "start_line": 1,
+        "end_line": 1,
+        "content": "from types import SimpleNamespace\n",
+        "score": 480,
+        "reason": "test exercising affected model; requested for failure analysis; appears in failing output or stack trace; related failing test; previous selected context",
+        "token_estimate": 8
+      },
+      {
+        "path": "tests/test_assistant_app.py",
+        "location": "2-2",
+        "symbol": "from typing import Any",
+        "start_line": 2,
+        "end_line": 2,
+        "content": "from typing import Any\n",
+        "score": 480,
+        "reason": "test exercising affected model; requested for failure analysis; appears in failing output or stack trace; related failing test; previous selected context",
+        "token_estimate": 5
+      },
+      {
+        "path": "tests/test_assistant_app.py",
+        "location": "4-4",
+        "symbol": "from assistant_app import summarize",
+        "start_line": 4,
+        "end_line": 4,
+        "content": "from assistant_app import summarize\n",
+        "score": 480,
+        "reason": "test exercising affected model; requested for failure analysis; appears in failing output or stack trace; related failing test; previous selected context",
+        "token_estimate": 9
+      },
+      {
+        "path": "tests/test_assistant_app.py",
+        "location": "7-7",
+        "symbol": "Reply",
+        "start_line": 7,
+        "end_line": 7,
+        "content": "class Reply(dict[str, Any]):\n",
+        "score": 480,
+        "reason": "test exercising affected model; requested for failure analysis; appears in failing output or stack trace; related failing test; previous selected context",
+        "token_estimate": 7
+      },
+      {
+        "path": "tests/test_assistant_app.py",
+        "location": "8-10",
+        "symbol": "Reply.__init__",
+        "start_line": 8,
+        "end_line": 10,
+        "content": "    def __init__(self, text: str) -> None:\n        super().__init__(choices=[{\"message\": {\"content\": text}}])\n        self.choices = [SimpleNamespace(message=SimpleNamespace(content=text))]\n",
+        "score": 480,
+        "reason": "test exercising affected model; requested for failure analysis; appears in failing output or stack trace; related failing test; previous selected context",
+        "token_estimate": 47
+      },
+      {
+        "path": "tests/test_assistant_app.py",
+        "location": "13-13",
+        "symbol": "FakeGateway",
+        "start_line": 13,
+        "end_line": 13,
+        "content": "class FakeGateway:\n",
+        "score": 480,
+        "reason": "test exercising affected model; requested for failure analysis; appears in failing output or stack trace; related failing test; previous selected context",
+        "token_estimate": 4
+      },
+      {
+        "path": "tests/test_assistant_app.py",
+        "location": "14-16",
+        "symbol": "FakeGateway.__init__",
+        "start_line": 14,
+        "end_line": 16,
+        "content": "    def __init__(self) -> None:\n        self.chat = SimpleNamespace(completions=self)\n        self.messages: list[dict[str, str]] = []\n",
+        "score": 480,
+        "reason": "test exercising affected model; requested for failure analysis; appears in failing output or stack trace; related failing test; previous selected context",
+        "token_estimate": 33
+      },
+      {
+        "path": "tests/test_assistant_app.py",
+        "location": "18-21",
+        "symbol": "FakeGateway.create",
+        "start_line": 18,
+        "end_line": 21,
+        "content": "    def create(self, *, model: str, messages: list[dict[str, str]]) -> Reply:\n        assert model == \"gpt-3.5-turbo\"\n        self.messages = messages\n        return Reply(\"  concise summary  \")\n",
+        "score": 480,
+        "reason": "test exercising affected model; requested for failure analysis; appears in failing output or stack trace; related failing test; previous selected context",
+        "token_estimate": 48
+      },
+      {
+        "path": "tests/test_assistant_app.py",
+        "location": "24-27",
+        "symbol": "test_summarize_preserves_prompt_and_output",
+        "start_line": 24,
+        "end_line": 27,
+        "content": "def test_summarize_preserves_prompt_and_output() -> None:\n    fake = FakeGateway()\n    assert summarize(\"  migration  \", gateway=fake) == \"concise summary\"\n    assert fake.messages == [{\"role\": \"user\", \"content\": \"Summarize migration\"}]\n",
+        "score": 480,
+        "reason": "test exercising affected model; requested for failure analysis; appears in failing output or stack trace; related failing test; previous selected context",
+        "token_estimate": 59
+      },
+      {
+        "path": "pyproject.toml",
+        "location": "5-5",
+        "symbol": "dependency/configuration",
+        "start_line": 5,
+        "end_line": 5,
+        "content": "name = \"patchpilot-openai-028-fixture\"\n",
+        "score": 240,
+        "reason": "openai dependency declaration; modified by migration patch; previous selected context",
+        "token_estimate": 9
+      },
+      {
+        "path": "pyproject.toml",
+        "location": "8-8",
+        "symbol": "dependency/configuration",
+        "start_line": 8,
+        "end_line": 8,
+        "content": "dependencies = [\"openai==1.109.1\"]\n",
+        "score": 240,
+        "reason": "openai dependency declaration; modified by migration patch; previous selected context",
+        "token_estimate": 8
+      },
+      {
+        "path": "src/assistant_app/gateway.py",
+        "location": "3-3",
+        "symbol": "from openai import OpenAI",
+        "start_line": 3,
+        "end_line": 3,
+        "content": "from openai import OpenAI\n",
+        "score": 180,
+        "reason": "direct openai import; modified by migration patch",
+        "token_estimate": 6
+      },
+      {
+        "path": "pyproject.toml",
+        "location": "1-1",
+        "symbol": "dependency/configuration",
+        "start_line": 1,
+        "end_line": 1,
+        "content": "[build-system]\n",
+        "score": 120,
+        "reason": "config near migration evidence; modified by migration patch; previous selected context",
+        "token_estimate": 3
+      },
+      {
+        "path": "pyproject.toml",
+        "location": "2-2",
+        "symbol": "dependency/configuration",
+        "start_line": 2,
+        "end_line": 2,
+        "content": "requires = [\"setuptools>=68\"]\n",
+        "score": 120,
+        "reason": "config near migration evidence; modified by migration patch; previous selected context",
+        "token_estimate": 7
+      },
+      {
+        "path": "pyproject.toml",
+        "location": "3-3",
+        "symbol": "dependency/configuration",
+        "start_line": 3,
+        "end_line": 3,
+        "content": "build-backend = \"setuptools.build_meta\"\n",
+        "score": 120,
+        "reason": "config near migration evidence; modified by migration patch; previous selected context",
+        "token_estimate": 10
+      },
+      {
+        "path": "src/assistant_app/gateway.py",
+        "location": "6-10",
+        "symbol": "complete",
+        "start_line": 6,
+        "end_line": 10,
+        "content": "def complete(prompt: str, gateway: Any = None) -> str:\n    client = gateway or OpenAI()\n    response = client.chat.completions.create(\n        model=\"gpt-3.5-turbo\", messages=[{\"role\": \"user\", \"content\": prompt}])\n    return str(response.choices[0].message.content).upper()\n",
+        "score": 120,
+        "reason": "function near migration evidence; modified by migration patch; previous selected context",
+        "token_estimate": 68
+      },
+      {
+        "path": "pyproject.toml",
+        "location": "4-4",
+        "symbol": "dependency/configuration",
+        "start_line": 4,
+        "end_line": 4,
+        "content": "[project]\n",
+        "score": 100,
+        "reason": "config near migration evidence; modified by migration patch",
+        "token_estimate": 2
+      },
+      {
+        "path": "pyproject.toml",
+        "location": "6-6",
+        "symbol": "dependency/configuration",
+        "start_line": 6,
+        "end_line": 6,
+        "content": "version = \"0.1.0\"\n",
+        "score": 100,
+        "reason": "config near migration evidence; modified by migration patch",
+        "token_estimate": 4
+      }
+    ],
+    "total_token_estimate": 337,
+    "max_files": 5,
+    "max_snippets": 18,
+    "max_context_tokens": 5000
+  },
+  "plan": {
+    "summary": "openai supported-version migration",
+    "planned_changes": [
+      {
+        "file": "pyproject.toml",
+        "symbol": "dependency or affected application behavior",
+        "reason": "old API or dependency compatibility",
+        "change": "migrate to supported API while preserving behavior",
+        "expected_effect": "existing regression behavior remains"
+      },
+      {
+        "file": "src/assistant_app/gateway.py",
+        "symbol": "dependency or affected application behavior",
+        "reason": "old API or dependency compatibility",
+        "change": "migrate to supported API while preserving behavior",
+        "expected_effect": "existing regression behavior remains"
+      }
+    ],
+    "affected_files": [
+      "pyproject.toml",
+      "src/assistant_app/gateway.py"
+    ],
+    "risks": [
+      "behavioral regression at migration boundary"
+    ],
+    "validation_plan": [
+      "migration-specific",
+      "pytest",
+      "mypy",
+      "ruff",
+      "runtime/import"
+    ]
+  },
+  "proposal": {
+    "changes": [
+      {
+        "path": "pyproject.toml",
+        "content": "[build-system]\nrequires = [\"setuptools>=68\"]\nbuild-backend = \"setuptools.build_meta\"\n[project]\nname = \"patchpilot-openai-028-fixture\"\nversion = \"0.1.0\"\nrequires-python = \">=3.10\"\ndependencies = [\"openai==1.109.1\"]\n[tool.setuptools.packages.find]\nwhere = [\"src\"]\n[tool.pytest.ini_options]\ntestpaths = [\"tests\"]\n[tool.mypy]\npython_version = \"3.10\"\nmypy_path = \"src\"\nignore_missing_imports = true\ncheck_untyped_defs = true\n[tool.ruff]\nline-length = 88\ntarget-version = \"py310\"\n"
+      },
+      {
+        "path": "src/assistant_app/gateway.py",
+        "content": "from typing import Any\n\nfrom openai import OpenAI\n\n\ndef complete(prompt: str, gateway: Any = None) -> str:\n    client = gateway or OpenAI()\n    response = client.chat.completions.create(\n        model=\"gpt-3.5-turbo\", messages=[{\"role\": \"user\", \"content\": prompt}])\n    return str(response.choices[0].message.content).upper()\n"
+      }
+    ],
+    "rationale": "controlled openai migration proposal"
+  },
+  "patch": {
+    "pre_snapshot": "268c68da5ab339e1fbce0b376f2f2e43b853d6b5",
+    "post_snapshot": "4f901e0c5593acd028120aae75f0c7a5988299ee",
+    "changed_files": [
+      "pyproject.toml",
+      "src/assistant_app/gateway.py"
+    ],
+    "diff": "diff --git a/pyproject.toml b/pyproject.toml\nindex b7888f6..145b6ba 100644\n--- a/pyproject.toml\n+++ b/pyproject.toml\n@@ -5,7 +5,7 @@ build-backend = \"setuptools.build_meta\"\n name = \"patchpilot-openai-028-fixture\"\n version = \"0.1.0\"\n requires-python = \">=3.10\"\n-dependencies = [\"openai==0.28.1\"]\n+dependencies = [\"openai==1.109.1\"]\n [tool.setuptools.packages.find]\n where = [\"src\"]\n [tool.pytest.ini_options]\ndiff --git a/src/assistant_app/gateway.py b/src/assistant_app/gateway.py\nindex 35fa5a7..7e119d0 100644\n--- a/src/assistant_app/gateway.py\n+++ b/src/assistant_app/gateway.py\n@@ -1,10 +1,10 @@\n from typing import Any\n \n-import openai\n+from openai import OpenAI\n \n \n def complete(prompt: str, gateway: Any = None) -> str:\n-    api = gateway or openai.ChatCompletion\n-    response = api.create(model=\"gpt-3.5-turbo\",\n-                          messages=[{\"role\": \"user\", \"content\": prompt}])\n-    return str(response[\"choices\"][0][\"message\"][\"content\"])\n+    client = gateway or OpenAI()\n+    response = client.chat.completions.create(\n+        model=\"gpt-3.5-turbo\", messages=[{\"role\": \"user\", \"content\": prompt}])\n+    return str(response.choices[0].message.content)\n",
+    "sha256": "908ea77e48ed1f827f0543059d44cbb885ad96fa6f710d0a2cd4c4a141a82021"
+  },
+  "sandbox_verification": {
+    "passed": true,
+    "checks": [
+      {
+        "name": "OpenAI Python SDK 1.x migration",
+        "command": [],
+        "exit_code": 0,
+        "output": "dependency and old API scan"
+      },
+      {
+        "name": "installed OpenAI Python SDK 1.x",
+        "command": [
+          "/tmp/patchpilot-p4-openai-new/bin/python",
+          "-c",
+          "import importlib.metadata,sys; from packaging.specifiers import SpecifierSet; sys.exit(importlib.metadata.version(sys.argv[1]) not in SpecifierSet(sys.argv[2]))",
+          "openai",
+          "==1.109.1"
+        ],
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "name": "pytest",
+        "command": [
+          "/tmp/patchpilot-p4-openai-new/bin/python",
+          "-m",
+          "pytest",
+          "-q",
+          "-p",
+          "no:cacheprovider"
+        ],
+        "exit_code": 0,
+        "output": ".                                                                        [100%]\n1 passed in 1.96s\n"
+      },
+      {
+        "name": "mypy",
+        "command": [
+          "/tmp/patchpilot-p4-openai-new/bin/python",
+          "-m",
+          "mypy",
+          "src",
+          "tests"
+        ],
+        "exit_code": 0,
+        "output": "Success: no issues found in 4 source files\n"
+      },
+      {
+        "name": "ruff",
+        "command": [
+          "/tmp/patchpilot-p4-openai-new/bin/python",
+          "-m",
+          "ruff",
+          "check",
+          "src",
+          "tests"
+        ],
+        "exit_code": 0,
+        "output": "All checks passed!\n"
+      },
+      {
+        "name": "runtime/import",
+        "command": [
+          "/tmp/patchpilot-p4-openai-new/bin/python",
+          "-c",
+          "import assistant_app; assert assistant_app"
+        ],
+        "exit_code": 0,
+        "output": ""
+      }
+    ]
+  },
+  "approval": {
+    "decision": "APPROVE",
+    "actor": "simulated-human",
+    "timestamp": "2026-09-21T01:08:36.407391+00:00"
+  },
+  "target_verification": {
+    "passed": true,
+    "checks": [
+      {
+        "name": "OpenAI Python SDK 1.x migration",
+        "command": [],
+        "exit_code": 0,
+        "output": "dependency and old API scan"
+      },
+      {
+        "name": "installed OpenAI Python SDK 1.x",
+        "command": [
+          "/tmp/patchpilot-p4-openai-new/bin/python",
+          "-c",
+          "import importlib.metadata,sys; from packaging.specifiers import SpecifierSet; sys.exit(importlib.metadata.version(sys.argv[1]) not in SpecifierSet(sys.argv[2]))",
+          "openai",
+          "==1.109.1"
+        ],
+        "exit_code": 0,
+        "output": ""
+      },
+      {
+        "name": "pytest",
+        "command": [
+          "/tmp/patchpilot-p4-openai-new/bin/python",
+          "-m",
+          "pytest",
+          "-q",
+          "-p",
+          "no:cacheprovider"
+        ],
+        "exit_code": 0,
+        "output": ".                                                                        [100%]\n1 passed in 1.02s\n"
+      },
+      {
+        "name": "mypy",
+        "command": [
+          "/tmp/patchpilot-p4-openai-new/bin/python",
+          "-m",
+          "mypy",
+          "src",
+          "tests"
+        ],
+        "exit_code": 0,
+        "output": "Success: no issues found in 4 source files\n"
+      },
+      {
+        "name": "ruff",
+        "command": [
+          "/tmp/patchpilot-p4-openai-new/bin/python",
+          "-m",
+          "ruff",
+          "check",
+          "src",
+          "tests"
+        ],
+        "exit_code": 0,
+        "output": "All checks passed!\n"
+      },
+      {
+        "name": "runtime/import",
+        "command": [
+          "/tmp/patchpilot-p4-openai-new/bin/python",
+          "-c",
+          "import assistant_app; assert assistant_app"
+        ],
+        "exit_code": 0,
+        "output": ""
+      }
+    ]
+  },
+  "target_branch": "patchpilot/openai-sdk-1x-9491b2e5",
+  "repair_attempts": [
+    {
+      "attempt_number": 2,
+      "failure_analysis": {
+        "failure_type": "migration_behavior_regression",
+        "likely_root_cause": "migration candidate changed tested behavior",
+        "supporting_evidence": [
+          "real pytest regression output"
+        ],
+        "proposed_repair": "restore the tested behavior in the affected file",
+        "files_to_modify": [
+          "src/assistant_app/gateway.py"
+        ],
+        "reason_for_each_file": [
+          {
+            "file": "src/assistant_app/gateway.py",
+            "reason": "the regression exercises this migration boundary",
+            "supporting_evidence": "failing regression test and current diff",
+            "expected_effect": "restore the original business behavior",
+            "required_verification": "complete verification suite"
+          }
+        ],
+        "additional_context_needed": [],
+        "confidence": 0.5
+      },
+      "repair_decision_path": "reviewer",
+      "approval_reason": "independent Reviewer approved",
+      "reviewer_decisions": [
+        {
+          "decision": "NEED_MORE_EVIDENCE",
+          "reason": "independent review of migration regression evidence",
+          "supporting_evidence": [
+            "failing test and affected code"
+          ],
+          "risk": "moderate",
+          "additional_context_needed": [
+            "tests/test_assistant_app.py"
+          ],
+          "required_verification": [
+            "complete verification suite"
+          ]
+        },
+        {
+          "decision": "APPROVE",
+          "reason": "independent review of migration regression evidence",
+          "supporting_evidence": [
+            "failing test and affected code"
+          ],
+          "risk": "moderate",
+          "additional_context_needed": [],
+          "required_verification": [
+            "complete verification suite"
+          ]
+        }
+      ],
+      "stable_snapshot_id": "268c68da5ab339e1fbce0b376f2f2e43b853d6b5",
+      "last_verified_stable_snapshot_id": "268c68da5ab339e1fbce0b376f2f2e43b853d6b5",
+      "repair_base_checkpoint_id": "77dde5554fe68e55911b7aeb611efd82b21b1493",
+      "candidate_checkpoint_id": "4f901e0c5593acd028120aae75f0c7a5988299ee",
+      "repair_diff": "diff --git a/src/assistant_app/gateway.py b/src/assistant_app/gateway.py\nindex ddac942..7e119d0 100644\n--- a/src/assistant_app/gateway.py\n+++ b/src/assistant_app/gateway.py\n@@ -7,4 +7,4 @@ def complete(prompt: str, gateway: Any = None) -> str:\n     client = gateway or OpenAI()\n     response = client.chat.completions.create(\n         model=\"gpt-3.5-turbo\", messages=[{\"role\": \"user\", \"content\": prompt}])\n-    return str(response.choices[0].message.content).upper()\n+    return str(response.choices[0].message.content)\n",
+      "proposal": {
+        "changes": [
+          {
+            "path": "src/assistant_app/gateway.py",
+            "content": "from typing import Any\n\nfrom openai import OpenAI\n\n\ndef complete(prompt: str, gateway: Any = None) -> str:\n    client = gateway or OpenAI()\n    response = client.chat.completions.create(\n        model=\"gpt-3.5-turbo\", messages=[{\"role\": \"user\", \"content\": prompt}])\n    return str(response.choices[0].message.content)\n"
+          }
+        ],
+        "rationale": "approved repair of tested behavior"
+      },
+      "verification_before": {
+        "passed": false,
+        "checks": [
+          {
+            "name": "OpenAI Python SDK 1.x migration",
+            "command": [],
+            "exit_code": 0,
+            "output": "dependency and old API scan"
+          },
+          {
+            "name": "installed OpenAI Python SDK 1.x",
+            "command": [
+              "/tmp/patchpilot-p4-openai-new/bin/python",
+              "-c",
+              "import importlib.metadata,sys; from packaging.specifiers import SpecifierSet; sys.exit(importlib.metadata.version(sys.argv[1]) not in SpecifierSet(sys.argv[2]))",
+              "openai",
+              "==1.109.1"
+            ],
+            "exit_code": 0,
+            "output": ""
+          },
+          {
+            "name": "pytest",
+            "command": [
+              "/tmp/patchpilot-p4-openai-new/bin/python",
+              "-m",
+              "pytest",
+              "-q",
+              "-p",
+              "no:cacheprovider"
+            ],
+            "exit_code": 1,
+            "output": "F                                                                        [100%]\n=================================== FAILURES ===================================\n__________________ test_summarize_preserves_prompt_and_output __________________\n\n    def test_summarize_preserves_prompt_and_output() -> None:\n        fake = FakeGateway()\n>       assert summarize(\"  migration  \", gateway=fake) == \"concise summary\"\nE       AssertionError: assert 'CONCISE SUMMARY' == 'concise summary'\nE         \nE         - concise summary\nE         + CONCISE SUMMARY\n\ntests/test_assistant_app.py:26: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_assistant_app.py::test_summarize_preserves_prompt_and_output\n1 failed in 1.46s\n"
+          },
+          {
+            "name": "mypy",
+            "command": [
+              "/tmp/patchpilot-p4-openai-new/bin/python",
+              "-m",
+              "mypy",
+              "src",
+              "tests"
+            ],
+            "exit_code": 0,
+            "output": "Success: no issues found in 4 source files\n"
+          },
+          {
+            "name": "ruff",
+            "command": [
+              "/tmp/patchpilot-p4-openai-new/bin/python",
+              "-m",
+              "ruff",
+              "check",
+              "src",
+              "tests"
+            ],
+            "exit_code": 0,
+            "output": "All checks passed!\n"
+          },
+          {
+            "name": "runtime/import",
+            "command": [
+              "/tmp/patchpilot-p4-openai-new/bin/python",
+              "-c",
+              "import assistant_app; assert assistant_app"
+            ],
+            "exit_code": 0,
+            "output": ""
+          }
+        ]
+      },
+      "verification_after": {
+        "passed": true,
+        "checks": [
+          {
+            "name": "OpenAI Python SDK 1.x migration",
+            "command": [],
+            "exit_code": 0,
+            "output": "dependency and old API scan"
+          },
+          {
+            "name": "installed OpenAI Python SDK 1.x",
+            "command": [
+              "/tmp/patchpilot-p4-openai-new/bin/python",
+              "-c",
+              "import importlib.metadata,sys; from packaging.specifiers import SpecifierSet; sys.exit(importlib.metadata.version(sys.argv[1]) not in SpecifierSet(sys.argv[2]))",
+              "openai",
+              "==1.109.1"
+            ],
+            "exit_code": 0,
+            "output": ""
+          },
+          {
+            "name": "pytest",
+            "command": [
+              "/tmp/patchpilot-p4-openai-new/bin/python",
+              "-m",
+              "pytest",
+              "-q",
+              "-p",
+              "no:cacheprovider"
+            ],
+            "exit_code": 0,
+            "output": ".                                                                        [100%]\n1 passed in 1.96s\n"
+          },
+          {
+            "name": "mypy",
+            "command": [
+              "/tmp/patchpilot-p4-openai-new/bin/python",
+              "-m",
+              "mypy",
+              "src",
+              "tests"
+            ],
+            "exit_code": 0,
+            "output": "Success: no issues found in 4 source files\n"
+          },
+          {
+            "name": "ruff",
+            "command": [
+              "/tmp/patchpilot-p4-openai-new/bin/python",
+              "-m",
+              "ruff",
+              "check",
+              "src",
+              "tests"
+            ],
+            "exit_code": 0,
+            "output": "All checks passed!\n"
+          },
+          {
+            "name": "runtime/import",
+            "command": [
+              "/tmp/patchpilot-p4-openai-new/bin/python",
+              "-c",
+              "import assistant_app; assert assistant_app"
+            ],
+            "exit_code": 0,
+            "output": ""
+          }
+        ]
+      },
+      "degraded": false,
+      "degraded_reason": null,
+      "rollback_result": null,
+      "rollback_target": null,
+      "rollback_reason": null
+    }
+  ],
+  "context_expansions": [
+    {
+      "attempt_number": 1,
+      "previous_context": {
+        "items": [
+          {
+            "path": "src/assistant_app/gateway.py",
+            "location": "6-10",
+            "symbol": "complete",
+            "start_line": 6,
+            "end_line": 10,
+            "content": "def complete(prompt: str, gateway: Any = None) -> str:\n    api = gateway or openai.ChatCompletion\n    response = api.create(model=\"gpt-3.5-turbo\",\n                          messages=[{\"role\": \"user\", \"content\": prompt}])\n    return str(response[\"choices\"][0][\"message\"][\"content\"])\n",
+            "score": 135,
+            "reason": "direct migrated API usage; migration API function",
+            "token_estimate": 70
+          },
+          {
+            "path": "pyproject.toml",
+            "location": "5-5",
+            "symbol": "dependency/configuration",
+            "start_line": 5,
+            "end_line": 5,
+            "content": "name = \"patchpilot-openai-028-fixture\"\n",
+            "score": 120,
+            "reason": "openai dependency declaration",
+            "token_estimate": 9
+          },
+          {
+            "path": "pyproject.toml",
+            "location": "8-8",
+            "symbol": "dependency/configuration",
+            "start_line": 8,
+            "end_line": 8,
+            "content": "dependencies = [\"openai==0.28.1\"]\n",
+            "score": 120,
+            "reason": "openai dependency declaration",
+            "token_estimate": 8
+          },
+          {
+            "path": "src/assistant_app/gateway.py",
+            "location": "3-3",
+            "symbol": "import openai",
+            "start_line": 3,
+            "end_line": 3,
+            "content": "import openai\n",
+            "score": 80,
+            "reason": "direct openai import",
+            "token_estimate": 3
+          },
+          {
+            "path": "tests/test_assistant_app.py",
+            "location": "1-1",
+            "symbol": "from types import SimpleNamespace",
+            "start_line": 1,
+            "end_line": 1,
+            "content": "from types import SimpleNamespace\n",
+            "score": 65,
+            "reason": "test exercising affected model",
+            "token_estimate": 8
+          },
+          {
+            "path": "tests/test_assistant_app.py",
+            "location": "2-2",
+            "symbol": "from typing import Any",
+            "start_line": 2,
+            "end_line": 2,
+            "content": "from typing import Any\n",
+            "score": 65,
+            "reason": "test exercising affected model",
+            "token_estimate": 5
+          },
+          {
+            "path": "tests/test_assistant_app.py",
+            "location": "4-4",
+            "symbol": "from assistant_app import summarize",
+            "start_line": 4,
+            "end_line": 4,
+            "content": "from assistant_app import summarize\n",
+            "score": 65,
+            "reason": "test exercising affected model",
+            "token_estimate": 9
+          },
+          {
+            "path": "tests/test_assistant_app.py",
+            "location": "7-7",
+            "symbol": "Reply",
+            "start_line": 7,
+            "end_line": 7,
+            "content": "class Reply(dict[str, Any]):\n",
+            "score": 65,
+            "reason": "test exercising affected model",
+            "token_estimate": 7
+          },
+          {
+            "path": "tests/test_assistant_app.py",
+            "location": "8-10",
+            "symbol": "Reply.__init__",
+            "start_line": 8,
+            "end_line": 10,
+            "content": "    def __init__(self, text: str) -> None:\n        super().__init__(choices=[{\"message\": {\"content\": text}}])\n        self.choices = [SimpleNamespace(message=SimpleNamespace(content=text))]\n",
+            "score": 65,
+            "reason": "test exercising affected model",
+            "token_estimate": 47
+          },
+          {
+            "path": "tests/test_assistant_app.py",
+            "location": "13-13",
+            "symbol": "FakeGateway",
+            "start_line": 13,
+            "end_line": 13,
+            "content": "class FakeGateway:\n",
+            "score": 65,
+            "reason": "test exercising affected model",
+            "token_estimate": 4
+          },
+          {
+            "path": "tests/test_assistant_app.py",
+            "location": "14-16",
+            "symbol": "FakeGateway.__init__",
+            "start_line": 14,
+            "end_line": 16,
+            "content": "    def __init__(self) -> None:\n        self.chat = SimpleNamespace(completions=self)\n        self.messages: list[dict[str, str]] = []\n",
+            "score": 65,
+            "reason": "test exercising affected model",
+            "token_estimate": 33
+          },
+          {
+            "path": "tests/test_assistant_app.py",
+            "location": "18-21",
+            "symbol": "FakeGateway.create",
+            "start_line": 18,
+            "end_line": 21,
+            "content": "    def create(self, *, model: str, messages: list[dict[str, str]]) -> Reply:\n        assert model == \"gpt-3.5-turbo\"\n        self.messages = messages\n        return Reply(\"  concise summary  \")\n",
+            "score": 65,
+            "reason": "test exercising affected model",
+            "token_estimate": 48
+          },
+          {
+            "path": "tests/test_assistant_app.py",
+            "location": "24-27",
+            "symbol": "test_summarize_preserves_prompt_and_output",
+            "start_line": 24,
+            "end_line": 27,
+            "content": "def test_summarize_preserves_prompt_and_output() -> None:\n    fake = FakeGateway()\n    assert summarize(\"  migration  \", gateway=fake) == \"concise summary\"\n    assert fake.messages == [{\"role\": \"user\", \"content\": \"Summarize migration\"}]\n",
+            "score": 65,
+            "reason": "test exercising affected model",
+            "token_estimate": 59
+          },
+          {
+            "path": "pyproject.toml",
+            "location": "1-1",
+            "symbol": "dependency/configuration",
+            "start_line": 1,
+            "end_line": 1,
+            "content": "[build-system]\n",
+            "score": 0,
+            "reason": "config near migration evidence",
+            "token_estimate": 3
+          },
+          {
+            "path": "pyproject.toml",
+            "location": "2-2",
+            "symbol": "dependency/configuration",
+            "start_line": 2,
+            "end_line": 2,
+            "content": "requires = [\"setuptools>=68\"]\n",
+            "score": 0,
+            "reason": "config near migration evidence",
+            "token_estimate": 7
+          },
+          {
+            "path": "pyproject.toml",
+            "location": "3-3",
+            "symbol": "dependency/configuration",
+            "start_line": 3,
+            "end_line": 3,
+            "content": "build-backend = \"setuptools.build_meta\"\n",
+            "score": 0,
+            "reason": "config near migration evidence",
+            "token_estimate": 10
+          },
+          {
+            "path": "src/assistant_app/__init__.py",
+            "location": "1-1",
+            "symbol": "from .service import summarize",
+            "start_line": 1,
+            "end_line": 1,
+            "content": "from .service import summarize\n",
+            "score": 0,
+            "reason": "import candidate",
+            "token_estimate": 7
+          },
+          {
+            "path": "src/assistant_app/service.py",
+            "location": "1-1",
+            "symbol": "from typing import Any",
+            "start_line": 1,
+            "end_line": 1,
+            "content": "from typing import Any\n",
+            "score": 0,
+            "reason": "import candidate",
+            "token_estimate": 5
+          }
+        ],
+        "total_token_estimate": 342,
+        "max_files": 5,
+        "max_snippets": 18,
+        "max_context_tokens": 5000
+      },
+      "new_context": {
+        "items": [
+          {
+            "path": "tests/test_assistant_app.py",
+            "location": "1-1",
+            "symbol": "from types import SimpleNamespace",
+            "start_line": 1,
+            "end_line": 1,
+            "content": "from types import SimpleNamespace\n",
+            "score": 480,
+            "reason": "test exercising affected model; requested for failure analysis; appears in failing output or stack trace; related failing test; previous selected context",
+            "token_estimate": 8
+          },
+          {
+            "path": "tests/test_assistant_app.py",
+            "location": "2-2",
+            "symbol": "from typing import Any",
+            "start_line": 2,
+            "end_line": 2,
+            "content": "from typing import Any\n",
+            "score": 480,
+            "reason": "test exercising affected model; requested for failure analysis; appears in failing output or stack trace; related failing test; previous selected context",
+            "token_estimate": 5
+          },
+          {
+            "path": "tests/test_assistant_app.py",
+            "location": "4-4",
+            "symbol": "from assistant_app import summarize",
+            "start_line": 4,
+            "end_line": 4,
+            "content": "from assistant_app import summarize\n",
+            "score": 480,
+            "reason": "test exercising affected model; requested for failure analysis; appears in failing output or stack trace; related failing test; previous selected context",
+            "token_estimate": 9
+          },
+          {
+            "path": "tests/test_assistant_app.py",
+            "location": "7-7",
+            "symbol": "Reply",
+            "start_line": 7,
+            "end_line": 7,
+            "content": "class Reply(dict[str, Any]):\n",
+            "score": 480,
+            "reason": "test exercising affected model; requested for failure analysis; appears in failing output or stack trace; related failing test; previous selected context",
+            "token_estimate": 7
+          },
+          {
+            "path": "tests/test_assistant_app.py",
+            "location": "8-10",
+            "symbol": "Reply.__init__",
+            "start_line": 8,
+            "end_line": 10,
+            "content": "    def __init__(self, text: str) -> None:\n        super().__init__(choices=[{\"message\": {\"content\": text}}])\n        self.choices = [SimpleNamespace(message=SimpleNamespace(content=text))]\n",
+            "score": 480,
+            "reason": "test exercising affected model; requested for failure analysis; appears in failing output or stack trace; related failing test; previous selected context",
+            "token_estimate": 47
+          },
+          {
+            "path": "tests/test_assistant_app.py",
+            "location": "13-13",
+            "symbol": "FakeGateway",
+            "start_line": 13,
+            "end_line": 13,
+            "content": "class FakeGateway:\n",
+            "score": 480,
+            "reason": "test exercising affected model; requested for failure analysis; appears in failing output or stack trace; related failing test; previous selected context",
+            "token_estimate": 4
+          },
+          {
+            "path": "tests/test_assistant_app.py",
+            "location": "14-16",
+            "symbol": "FakeGateway.__init__",
+            "start_line": 14,
+            "end_line": 16,
+            "content": "    def __init__(self) -> None:\n        self.chat = SimpleNamespace(completions=self)\n        self.messages: list[dict[str, str]] = []\n",
+            "score": 480,
+            "reason": "test exercising affected model; requested for failure analysis; appears in failing output or stack trace; related failing test; previous selected context",
+            "token_estimate": 33
+          },
+          {
+            "path": "tests/test_assistant_app.py",
+            "location": "18-21",
+            "symbol": "FakeGateway.create",
+            "start_line": 18,
+            "end_line": 21,
+            "content": "    def create(self, *, model: str, messages: list[dict[str, str]]) -> Reply:\n        assert model == \"gpt-3.5-turbo\"\n        self.messages = messages\n        return Reply(\"  concise summary  \")\n",
+            "score": 480,
+            "reason": "test exercising affected model; requested for failure analysis; appears in failing output or stack trace; related failing test; previous selected context",
+            "token_estimate": 48
+          },
+          {
+            "path": "tests/test_assistant_app.py",
+            "location": "24-27",
+            "symbol": "test_summarize_preserves_prompt_and_output",
+            "start_line": 24,
+            "end_line": 27,
+            "content": "def test_summarize_preserves_prompt_and_output() -> None:\n    fake = FakeGateway()\n    assert summarize(\"  migration  \", gateway=fake) == \"concise summary\"\n    assert fake.messages == [{\"role\": \"user\", \"content\": \"Summarize migration\"}]\n",
+            "score": 480,
+            "reason": "test exercising affected model; requested for failure analysis; appears in failing output or stack trace; related failing test; previous selected context",
+            "token_estimate": 59
+          },
+          {
+            "path": "pyproject.toml",
+            "location": "5-5",
+            "symbol": "dependency/configuration",
+            "start_line": 5,
+            "end_line": 5,
+            "content": "name = \"patchpilot-openai-028-fixture\"\n",
+            "score": 240,
+            "reason": "openai dependency declaration; modified by migration patch; previous selected context",
+            "token_estimate": 9
+          },
+          {
+            "path": "pyproject.toml",
+            "location": "8-8",
+            "symbol": "dependency/configuration",
+            "start_line": 8,
+            "end_line": 8,
+            "content": "dependencies = [\"openai==1.109.1\"]\n",
+            "score": 240,
+            "reason": "openai dependency declaration; modified by migration patch; previous selected context",
+            "token_estimate": 8
+          },
+          {
+            "path": "src/assistant_app/gateway.py",
+            "location": "3-3",
+            "symbol": "from openai import OpenAI",
+            "start_line": 3,
+            "end_line": 3,
+            "content": "from openai import OpenAI\n",
+            "score": 180,
+            "reason": "direct openai import; modified by migration patch",
+            "token_estimate": 6
+          },
+          {
+            "path": "pyproject.toml",
+            "location": "1-1",
+            "symbol": "dependency/configuration",
+            "start_line": 1,
+            "end_line": 1,
+            "content": "[build-system]\n",
+            "score": 120,
+            "reason": "config near migration evidence; modified by migration patch; previous selected context",
+            "token_estimate": 3
+          },
+          {
+            "path": "pyproject.toml",
+            "location": "2-2",
+            "symbol": "dependency/configuration",
+            "start_line": 2,
+            "end_line": 2,
+            "content": "requires = [\"setuptools>=68\"]\n",
+            "score": 120,
+            "reason": "config near migration evidence; modified by migration patch; previous selected context",
+            "token_estimate": 7
+          },
+          {
+            "path": "pyproject.toml",
+            "location": "3-3",
+            "symbol": "dependency/configuration",
+            "start_line": 3,
+            "end_line": 3,
+            "content": "build-backend = \"setuptools.build_meta\"\n",
+            "score": 120,
+            "reason": "config near migration evidence; modified by migration patch; previous selected context",
+            "token_estimate": 10
+          },
+          {
+            "path": "src/assistant_app/gateway.py",
+            "location": "6-10",
+            "symbol": "complete",
+            "start_line": 6,
+            "end_line": 10,
+            "content": "def complete(prompt: str, gateway: Any = None) -> str:\n    client = gateway or OpenAI()\n    response = client.chat.completions.create(\n        model=\"gpt-3.5-turbo\", messages=[{\"role\": \"user\", \"content\": prompt}])\n    return str(response.choices[0].message.content).upper()\n",
+            "score": 120,
+            "reason": "function near migration evidence; modified by migration patch; previous selected context",
+            "token_estimate": 68
+          },
+          {
+            "path": "pyproject.toml",
+            "location": "4-4",
+            "symbol": "dependency/configuration",
+            "start_line": 4,
+            "end_line": 4,
+            "content": "[project]\n",
+            "score": 100,
+            "reason": "config near migration evidence; modified by migration patch",
+            "token_estimate": 2
+          },
+          {
+            "path": "pyproject.toml",
+            "location": "6-6",
+            "symbol": "dependency/configuration",
+            "start_line": 6,
+            "end_line": 6,
+            "content": "version = \"0.1.0\"\n",
+            "score": 100,
+            "reason": "config near migration evidence; modified by migration patch",
+            "token_estimate": 4
+          }
+        ],
+        "total_token_estimate": 337,
+        "max_files": 5,
+        "max_snippets": 18,
+        "max_context_tokens": 5000
+      },
+      "expansion_reason": "Reviewer requested: tests/test_assistant_app.py"
+    }
+  ],
+  "expansion_count": 1,
+  "expansion_limit": 2,
+  "unresolved_context_request": [],
+  "reason_for_escalation": null,
+  "failure_analyses": [
+    {
+      "failure_type": "migration_behavior_regression",
+      "likely_root_cause": "migration candidate changed tested behavior",
+      "supporting_evidence": [
+        "real pytest regression output"
+      ],
+      "proposed_repair": "restore the tested behavior in the affected file",
+      "files_to_modify": [
+        "src/assistant_app/gateway.py"
+      ],
+      "reason_for_each_file": [
+        {
+          "file": "src/assistant_app/gateway.py",
+          "reason": "the regression exercises this migration boundary",
+          "supporting_evidence": "failing regression test and current diff",
+          "expected_effect": "restore the original business behavior",
+          "required_verification": "complete verification suite"
+        }
+      ],
+      "additional_context_needed": [],
+      "confidence": 0.5
+    }
+  ],
+  "review_history": [
+    {
+      "decision": "NEED_MORE_EVIDENCE",
+      "reason": "independent review of migration regression evidence",
+      "supporting_evidence": [
+        "failing test and affected code"
+      ],
+      "risk": "moderate",
+      "additional_context_needed": [
+        "tests/test_assistant_app.py"
+      ],
+      "required_verification": [
+        "complete verification suite"
+      ]
+    },
+    {
+      "decision": "APPROVE",
+      "reason": "independent review of migration regression evidence",
+      "supporting_evidence": [
+        "failing test and affected code"
+      ],
+      "risk": "moderate",
+      "additional_context_needed": [],
+      "required_verification": [
+        "complete verification suite"
+      ]
+    }
+  ],
+  "repair_decisions": [
+    "reviewer: independent review of migration regression evidence"
+  ],
+  "final_status": "READY_FOR_PR",
+  "started_at": "2026-09-21T01:07:57.750009+00:00",
+  "ended_at": "2026-09-21T01:08:53.634775+00:00"
+}

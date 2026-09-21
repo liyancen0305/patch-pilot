@@ -1,0 +1,24 @@
+diff --git a/pyproject.toml b/pyproject.toml
+index 3554ed1..e878392 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
+ name = "patchpilot-httpx-027-fixture"
+ version = "0.1.0"
+ requires-python = ">=3.10"
+-dependencies = ["httpx==0.27.2"]
++dependencies = ["httpx==0.28.1"]
+ [tool.setuptools.packages.find]
+ where = ["src"]
+ [tool.pytest.ini_options]
+diff --git a/src/remote/client.py b/src/remote/client.py
+index fe7a96c..037f30f 100644
+--- a/src/remote/client.py
++++ b/src/remote/client.py
+@@ -2,5 +2,5 @@ import httpx
+ 
+ 
+ def make_client(transport: httpx.BaseTransport) -> httpx.Client:
+-    return httpx.Client(proxies=None, transport=transport, trust_env=False,
++    return httpx.Client(transport=transport, trust_env=False,
+                         headers={"X-App": "PatchPilot"})

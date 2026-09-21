@@ -1,0 +1,126 @@
+[
+  {
+    "run_id": "26a2d98e9810440a830685e964f76957",
+    "attempt_number": 1,
+    "component": "Migration Planner",
+    "model": "controlled-benchmark-test-double",
+    "prompt_name": "04_remaining_use_cases",
+    "prompt_version": "v1.1",
+    "input_metadata": {
+      "retry": 1,
+      "workflow_attempt": 1,
+      "context_files": [
+        "src/assistant_app/gateway.py",
+        "pyproject.toml",
+        "pyproject.toml",
+        "src/assistant_app/gateway.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "pyproject.toml",
+        "pyproject.toml",
+        "pyproject.toml",
+        "src/assistant_app/__init__.py",
+        "src/assistant_app/service.py"
+      ],
+      "characters": 8302
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "latency_seconds": 0.0019216090004192665,
+    "estimated_cost_usd": 0.0,
+    "structured_output": {
+      "summary": "openai supported-version migration",
+      "planned_changes": [
+        {
+          "file": "pyproject.toml",
+          "symbol": "dependency or affected application behavior",
+          "reason": "old API or dependency compatibility",
+          "change": "migrate to supported API while preserving behavior",
+          "expected_effect": "existing regression behavior remains"
+        },
+        {
+          "file": "src/assistant_app/gateway.py",
+          "symbol": "dependency or affected application behavior",
+          "reason": "old API or dependency compatibility",
+          "change": "migrate to supported API while preserving behavior",
+          "expected_effect": "existing regression behavior remains"
+        }
+      ],
+      "affected_files": [
+        "pyproject.toml",
+        "src/assistant_app/gateway.py"
+      ],
+      "risks": [
+        "behavioral regression at migration boundary"
+      ],
+      "validation_plan": [
+        "migration-specific",
+        "pytest",
+        "mypy",
+        "ruff",
+        "runtime/import"
+      ]
+    },
+    "error": null,
+    "timestamp": "2026-09-21T01:07:14.714235+00:00"
+  },
+  {
+    "run_id": "26a2d98e9810440a830685e964f76957",
+    "attempt_number": 1,
+    "component": "Patch Generator",
+    "model": "controlled-benchmark-test-double",
+    "prompt_name": "04_remaining_use_cases",
+    "prompt_version": "v1.1",
+    "input_metadata": {
+      "retry": 1,
+      "workflow_attempt": 1,
+      "context_files": [
+        "src/assistant_app/gateway.py",
+        "pyproject.toml",
+        "pyproject.toml",
+        "src/assistant_app/gateway.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "tests/test_assistant_app.py",
+        "pyproject.toml",
+        "pyproject.toml",
+        "pyproject.toml",
+        "src/assistant_app/__init__.py",
+        "src/assistant_app/service.py"
+      ],
+      "characters": 6912
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "latency_seconds": 0.0022044449997338234,
+    "estimated_cost_usd": 0.0,
+    "structured_output": {
+      "changes": [
+        {
+          "path": "pyproject.toml",
+          "content": "[build-system]\nrequires = [\"setuptools>=68\"]\nbuild-backend = \"setuptools.build_meta\"\n[project]\nname = \"patchpilot-openai-028-fixture\"\nversion = \"0.1.0\"\nrequires-python = \">=3.10\"\ndependencies = [\"openai==1.109.1\"]\n[tool.setuptools.packages.find]\nwhere = [\"src\"]\n[tool.pytest.ini_options]\ntestpaths = [\"tests\"]\n[tool.mypy]\npython_version = \"3.10\"\nmypy_path = \"src\"\nignore_missing_imports = true\ncheck_untyped_defs = true\n[tool.ruff]\nline-length = 88\ntarget-version = \"py310\"\n"
+        },
+        {
+          "path": "src/assistant_app/gateway.py",
+          "content": "from typing import Any\n\nfrom openai import OpenAI\n\n\ndef complete(prompt: str, gateway: Any = None) -> str:\n    client = gateway or OpenAI()\n    response = client.chat.completions.create(\n        model=\"gpt-3.5-turbo\", messages=[{\"role\": \"user\", \"content\": prompt}])\n    return str(response.choices[0].message.content)\n"
+        }
+      ],
+      "rationale": "controlled openai migration proposal"
+    },
+    "error": null,
+    "timestamp": "2026-09-21T01:07:14.731425+00:00"
+  }
+]

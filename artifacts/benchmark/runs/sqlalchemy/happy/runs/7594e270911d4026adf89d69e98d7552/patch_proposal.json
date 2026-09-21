@@ -1,0 +1,13 @@
+{
+  "changes": [
+    {
+      "path": "pyproject.toml",
+      "content": "[build-system]\nrequires = [\"setuptools>=68\"]\nbuild-backend = \"setuptools.build_meta\"\n[project]\nname = \"patchpilot-sqlalchemy-14-fixture\"\nversion = \"0.1.0\"\nrequires-python = \">=3.10\"\ndependencies = [\"SQLAlchemy==2.0.44\"]\n[tool.setuptools.packages.find]\nwhere = [\"src\"]\n[tool.pytest.ini_options]\ntestpaths = [\"tests\"]\n[tool.mypy]\npython_version = \"3.10\"\nmypy_path = \"src\"\nignore_missing_imports = true\ncheck_untyped_defs = true\n[tool.ruff]\nline-length = 88\ntarget-version = \"py310\"\n"
+    },
+    {
+      "path": "src/ledger/repository.py",
+      "content": "from typing import cast\n\nfrom sqlalchemy import select\nfrom sqlalchemy.orm import Session\n\nfrom .models import Account\n\n\ndef add_account(session: Session, owner: str, balance: int) -> Account:\n    account = Account(owner=owner.strip(), balance=balance)\n    session.add(account)\n    session.commit()\n    return account\n\n\ndef find_account(session: Session, owner: str) -> Account | None:\n    return session.scalars(select(Account).where(Account.owner == owner)).one_or_none()\n\n\ndef total_balance(session: Session) -> int:\n    return sum(cast(int, row.balance) for row in session.scalars(select(Account).order_by(Account.id)))\n"
+    }
+  ],
+  "rationale": "controlled sqlalchemy migration proposal"
+}

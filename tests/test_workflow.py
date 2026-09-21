@@ -27,9 +27,9 @@ def test_state_machine_and_schemas() -> None:
 
 def test_analysis_and_context_budget() -> None:
     analysis = analyze(FIXTURE)
-    assert analysis.pydantic_version == "==1.10.26"
+    assert analysis.dependency_version == "==1.10.26"
     assert "src/shop/orders.py" in analysis.source_files
-    assert "root_validator" in analysis.v1_usages["src/shop/orders.py"]
+    assert "root_validator" in analysis.migration_api_usages["src/shop/orders.py"]
     assert "tests/test_shop.py" in analysis.related_tests["src/shop/orders.py"]
     context = select_context(FIXTURE, analysis, max_files=2, max_snippets=2,
                              max_context_tokens=5000)

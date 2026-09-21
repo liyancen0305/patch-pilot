@@ -1,0 +1,191 @@
+[
+  {
+    "attempt_number": 2,
+    "failure_analysis": {
+      "failure_type": "migration_behavior_regression",
+      "likely_root_cause": "email normalizer no longer lowercases",
+      "supporting_evidence": [
+        "test_valid_user_and_normalization fails"
+      ],
+      "proposed_repair": "restore lowercase normalization",
+      "files_to_modify": [
+        "src/shop/users.py"
+      ],
+      "reason_for_each_file": [
+        {
+          "file": "src/shop/users.py",
+          "reason": "email normalization regression",
+          "supporting_evidence": "failing email assertion",
+          "expected_effect": "preserve lowercase email",
+          "required_verification": "full suite"
+        }
+      ],
+      "additional_context_needed": [],
+      "confidence": 0.95
+    },
+    "repair_decision_path": "deterministic",
+    "approval_reason": "all files exist in supported scope; planned files or explicit failing-output paths support modification",
+    "reviewer_decisions": [],
+    "stable_snapshot_id": "1bcab689dda9b4f043b626c72b4b57fa43ce57c4",
+    "last_verified_stable_snapshot_id": "1bcab689dda9b4f043b626c72b4b57fa43ce57c4",
+    "repair_base_checkpoint_id": "ebbcd8a83a842057c57d5d05773f3fa8f5553daf",
+    "candidate_checkpoint_id": "03d27e7ddfe5a3f93e1ad77921997255382720d6",
+    "repair_diff": "diff --git a/src/shop/users.py b/src/shop/users.py\nindex d434f06..7f45244 100644\n--- a/src/shop/users.py\n+++ b/src/shop/users.py\n@@ -20,7 +20,7 @@ class User(ShopModel):\n     @field_validator(\"email\")\n     @classmethod\n     def normalized_email(cls, value: str) -> str:\n-        value = value.strip()\n+        value = value.lower()\n         if \"@\" not in value or value.startswith(\"@\") or value.endswith(\"@\"):\n             raise ValueError(\"invalid email\")\n         return value\n",
+    "proposal": {
+      "changes": [
+        {
+          "path": "src/shop/users.py",
+          "content": "\"\"\"User model and field validation.\"\"\"\n\nfrom pydantic import field_validator\n\nfrom .base import ShopModel\n\n\nclass User(ShopModel):\n    id: int\n    email: str\n    name: str\n\n    @field_validator(\"id\")\n    @classmethod\n    def positive_id(cls, value: int) -> int:\n        if value <= 0:\n            raise ValueError(\"id must be positive\")\n        return value\n\n    @field_validator(\"email\")\n    @classmethod\n    def normalized_email(cls, value: str) -> str:\n        value = value.lower()\n        if \"@\" not in value or value.startswith(\"@\") or value.endswith(\"@\"):\n            raise ValueError(\"invalid email\")\n        return value\n"
+        }
+      ],
+      "rationale": "repair email normalization"
+    },
+    "verification_before": {
+      "passed": false,
+      "checks": [
+        {
+          "name": "Pydantic v2 migration",
+          "command": [],
+          "exit_code": 0,
+          "output": "dependency and old API scan"
+        },
+        {
+          "name": "installed Pydantic v2",
+          "command": [
+            "/tmp/patchpilot-pydantic2-venv/bin/python",
+            "-c",
+            "import importlib.metadata,sys; from packaging.specifiers import SpecifierSet; sys.exit(importlib.metadata.version(sys.argv[1]) not in SpecifierSet(sys.argv[2]))",
+            "pydantic",
+            ">=2,<3"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "name": "pytest",
+          "command": [
+            "/tmp/patchpilot-pydantic2-venv/bin/python",
+            "-m",
+            "pytest",
+            "-q",
+            "-p",
+            "no:cacheprovider"
+          ],
+          "exit_code": 1,
+          "output": "F....F.                                                                  [100%]\n=================================== FAILURES ===================================\n______________________ test_valid_user_and_normalization _______________________\n\n    def test_valid_user_and_normalization() -> None:\n        user = User(id=1, email=\" ADA@EXAMPLE.COM \", name=\" Ada \")\n>       assert user.email == \"ada@example.com\"\nE       AssertionError: assert 'ADA@EXAMPLE.COM' == 'ada@example.com'\nE         \nE         - ada@example.com\nE         + ADA@EXAMPLE.COM\n\ntests/test_shop.py:9: AssertionError\n_____________________ test_nested_parse_and_serialization ______________________\n\n    def test_nested_parse_and_serialization() -> None:\n        order = Order.model_validate({\n            \"id\": 10,\n            \"customer\": {\"id\": 1, \"email\": \"ADA@EXAMPLE.COM\", \"name\": \" Ada \"},\n            \"items\": [\n                {\"sku\": \"pen\", \"quantity\": 2, \"unit_price_cents\": 150},\n                {\"sku\": \"book\", \"quantity\": 1, \"unit_price_cents\": 700},\n            ],\n            \"total_cents\": 1000,\n        })\n        assert isinstance(order.customer, User)\n        assert isinstance(order.items[0], OrderItem)\n>       assert order.model_dump()[\"customer\"] == {\n            \"id\": 1, \"email\": \"ada@example.com\", \"name\": \"Ada\"\n        }\nE       AssertionError: assert {'id': 1, 'em...'name': 'Ada'} == {'id': 1, 'em...'name': 'Ada'}\nE         \nE         Omitting 2 identical items, use -vv to show\nE         Differing items:\nE         {'email': 'ADA@EXAMPLE.COM'} != {'email': 'ada@example.com'}\nE         Use -v to get more diff\n\ntests/test_shop.py:47: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_shop.py::test_valid_user_and_normalization - AssertionError...\nFAILED tests/test_shop.py::test_nested_parse_and_serialization - AssertionErr...\n2 failed, 5 passed in 0.21s\n"
+        },
+        {
+          "name": "mypy",
+          "command": [
+            "/tmp/patchpilot-pydantic2-venv/bin/python",
+            "-m",
+            "mypy",
+            "src",
+            "tests"
+          ],
+          "exit_code": 0,
+          "output": "Success: no issues found in 5 source files\n"
+        },
+        {
+          "name": "ruff",
+          "command": [
+            "/tmp/patchpilot-pydantic2-venv/bin/python",
+            "-m",
+            "ruff",
+            "check",
+            "src",
+            "tests"
+          ],
+          "exit_code": 0,
+          "output": "All checks passed!\n"
+        },
+        {
+          "name": "runtime/import",
+          "command": [
+            "/tmp/patchpilot-pydantic2-venv/bin/python",
+            "-c",
+            "import shop; assert shop.User and shop.Order"
+          ],
+          "exit_code": 0,
+          "output": ""
+        }
+      ]
+    },
+    "verification_after": {
+      "passed": true,
+      "checks": [
+        {
+          "name": "Pydantic v2 migration",
+          "command": [],
+          "exit_code": 0,
+          "output": "dependency and old API scan"
+        },
+        {
+          "name": "installed Pydantic v2",
+          "command": [
+            "/tmp/patchpilot-pydantic2-venv/bin/python",
+            "-c",
+            "import importlib.metadata,sys; from packaging.specifiers import SpecifierSet; sys.exit(importlib.metadata.version(sys.argv[1]) not in SpecifierSet(sys.argv[2]))",
+            "pydantic",
+            ">=2,<3"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "name": "pytest",
+          "command": [
+            "/tmp/patchpilot-pydantic2-venv/bin/python",
+            "-m",
+            "pytest",
+            "-q",
+            "-p",
+            "no:cacheprovider"
+          ],
+          "exit_code": 0,
+          "output": ".......                                                                  [100%]\n7 passed in 0.17s\n"
+        },
+        {
+          "name": "mypy",
+          "command": [
+            "/tmp/patchpilot-pydantic2-venv/bin/python",
+            "-m",
+            "mypy",
+            "src",
+            "tests"
+          ],
+          "exit_code": 0,
+          "output": "Success: no issues found in 5 source files\n"
+        },
+        {
+          "name": "ruff",
+          "command": [
+            "/tmp/patchpilot-pydantic2-venv/bin/python",
+            "-m",
+            "ruff",
+            "check",
+            "src",
+            "tests"
+          ],
+          "exit_code": 0,
+          "output": "All checks passed!\n"
+        },
+        {
+          "name": "runtime/import",
+          "command": [
+            "/tmp/patchpilot-pydantic2-venv/bin/python",
+            "-c",
+            "import shop; assert shop.User and shop.Order"
+          ],
+          "exit_code": 0,
+          "output": ""
+        }
+      ]
+    },
+    "degraded": false,
+    "degraded_reason": null,
+    "rollback_result": null,
+    "rollback_target": null,
+    "rollback_reason": null
+  }
+]

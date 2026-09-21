@@ -1,0 +1,26 @@
+[
+  {
+    "decision": "APPROVE",
+    "reason": "independent review of migration regression evidence",
+    "supporting_evidence": [
+      "failing test and affected code"
+    ],
+    "risk": "moderate",
+    "additional_context_needed": [],
+    "required_verification": [
+      "complete verification suite"
+    ]
+  },
+  {
+    "decision": "APPROVE",
+    "reason": "independent review of migration regression evidence",
+    "supporting_evidence": [
+      "failing test and affected code"
+    ],
+    "risk": "moderate",
+    "additional_context_needed": [],
+    "required_verification": [
+      "complete verification suite"
+    ]
+  }
+]

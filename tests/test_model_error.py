@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import pytest
+from test_happy_path import V2_PYTHON
 
 from patchpilot.workflow import RunStore, VerificationRunner, Workflow
 from patchpilot.workflow.model import ModelClient
@@ -22,7 +23,7 @@ class MalformedBackend:
 def test_invalid_plan_persists_model_error(tmp_path: Path) -> None:
     store = RunStore(tmp_path / "runs.db")
     client = ModelClient(MalformedBackend(), store, retries=1)
-    workflow = Workflow(store, client, VerificationRunner())
+    workflow = Workflow(store, client, VerificationRunner(V2_PYTHON))
     with pytest.raises(RuntimeError, match="invalid Migration Planner output"):
         workflow.run(FIXTURE, tmp_path / "artifacts")
     import sqlite3

@@ -1,0 +1,26 @@
+diff --git a/pyproject.toml b/pyproject.toml
+index e6400e5..037cf7c 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
+ name = "patchpilot-celery-4-fixture"
+ version = "0.1.0"
+ requires-python = ">=3.10"
+-dependencies = ["celery==4.4.7"]
++dependencies = ["celery==5.5.3"]
+ [tool.setuptools.packages.find]
+ where = ["src"]
+ [tool.pytest.ini_options]
+diff --git a/src/jobs/config.py b/src/jobs/config.py
+index 90560c4..d297dbe 100644
+--- a/src/jobs/config.py
++++ b/src/jobs/config.py
+@@ -1,4 +1,4 @@
+-BROKER_URL = "memory://"
+-CELERY_RESULT_BACKEND = "cache+memory://"
+-CELERY_ALWAYS_EAGER = True
+-CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
++broker_url = "memory://"
++result_backend = "cache+memory://"
++task_always_eager = True
++task_eager_propagates = True

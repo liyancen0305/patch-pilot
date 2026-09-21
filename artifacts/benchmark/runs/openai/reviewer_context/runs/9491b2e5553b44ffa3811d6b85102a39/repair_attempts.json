@@ -1,0 +1,218 @@
+[
+  {
+    "attempt_number": 2,
+    "failure_analysis": {
+      "failure_type": "migration_behavior_regression",
+      "likely_root_cause": "migration candidate changed tested behavior",
+      "supporting_evidence": [
+        "real pytest regression output"
+      ],
+      "proposed_repair": "restore the tested behavior in the affected file",
+      "files_to_modify": [
+        "src/assistant_app/gateway.py"
+      ],
+      "reason_for_each_file": [
+        {
+          "file": "src/assistant_app/gateway.py",
+          "reason": "the regression exercises this migration boundary",
+          "supporting_evidence": "failing regression test and current diff",
+          "expected_effect": "restore the original business behavior",
+          "required_verification": "complete verification suite"
+        }
+      ],
+      "additional_context_needed": [],
+      "confidence": 0.5
+    },
+    "repair_decision_path": "reviewer",
+    "approval_reason": "independent Reviewer approved",
+    "reviewer_decisions": [
+      {
+        "decision": "NEED_MORE_EVIDENCE",
+        "reason": "independent review of migration regression evidence",
+        "supporting_evidence": [
+          "failing test and affected code"
+        ],
+        "risk": "moderate",
+        "additional_context_needed": [
+          "tests/test_assistant_app.py"
+        ],
+        "required_verification": [
+          "complete verification suite"
+        ]
+      },
+      {
+        "decision": "APPROVE",
+        "reason": "independent review of migration regression evidence",
+        "supporting_evidence": [
+          "failing test and affected code"
+        ],
+        "risk": "moderate",
+        "additional_context_needed": [],
+        "required_verification": [
+          "complete verification suite"
+        ]
+      }
+    ],
+    "stable_snapshot_id": "268c68da5ab339e1fbce0b376f2f2e43b853d6b5",
+    "last_verified_stable_snapshot_id": "268c68da5ab339e1fbce0b376f2f2e43b853d6b5",
+    "repair_base_checkpoint_id": "77dde5554fe68e55911b7aeb611efd82b21b1493",
+    "candidate_checkpoint_id": "4f901e0c5593acd028120aae75f0c7a5988299ee",
+    "repair_diff": "diff --git a/src/assistant_app/gateway.py b/src/assistant_app/gateway.py\nindex ddac942..7e119d0 100644\n--- a/src/assistant_app/gateway.py\n+++ b/src/assistant_app/gateway.py\n@@ -7,4 +7,4 @@ def complete(prompt: str, gateway: Any = None) -> str:\n     client = gateway or OpenAI()\n     response = client.chat.completions.create(\n         model=\"gpt-3.5-turbo\", messages=[{\"role\": \"user\", \"content\": prompt}])\n-    return str(response.choices[0].message.content).upper()\n+    return str(response.choices[0].message.content)\n",
+    "proposal": {
+      "changes": [
+        {
+          "path": "src/assistant_app/gateway.py",
+          "content": "from typing import Any\n\nfrom openai import OpenAI\n\n\ndef complete(prompt: str, gateway: Any = None) -> str:\n    client = gateway or OpenAI()\n    response = client.chat.completions.create(\n        model=\"gpt-3.5-turbo\", messages=[{\"role\": \"user\", \"content\": prompt}])\n    return str(response.choices[0].message.content)\n"
+        }
+      ],
+      "rationale": "approved repair of tested behavior"
+    },
+    "verification_before": {
+      "passed": false,
+      "checks": [
+        {
+          "name": "OpenAI Python SDK 1.x migration",
+          "command": [],
+          "exit_code": 0,
+          "output": "dependency and old API scan"
+        },
+        {
+          "name": "installed OpenAI Python SDK 1.x",
+          "command": [
+            "/tmp/patchpilot-p4-openai-new/bin/python",
+            "-c",
+            "import importlib.metadata,sys; from packaging.specifiers import SpecifierSet; sys.exit(importlib.metadata.version(sys.argv[1]) not in SpecifierSet(sys.argv[2]))",
+            "openai",
+            "==1.109.1"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "name": "pytest",
+          "command": [
+            "/tmp/patchpilot-p4-openai-new/bin/python",
+            "-m",
+            "pytest",
+            "-q",
+            "-p",
+            "no:cacheprovider"
+          ],
+          "exit_code": 1,
+          "output": "F                                                                        [100%]\n=================================== FAILURES ===================================\n__________________ test_summarize_preserves_prompt_and_output __________________\n\n    def test_summarize_preserves_prompt_and_output() -> None:\n        fake = FakeGateway()\n>       assert summarize(\"  migration  \", gateway=fake) == \"concise summary\"\nE       AssertionError: assert 'CONCISE SUMMARY' == 'concise summary'\nE         \nE         - concise summary\nE         + CONCISE SUMMARY\n\ntests/test_assistant_app.py:26: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_assistant_app.py::test_summarize_preserves_prompt_and_output\n1 failed in 1.46s\n"
+        },
+        {
+          "name": "mypy",
+          "command": [
+            "/tmp/patchpilot-p4-openai-new/bin/python",
+            "-m",
+            "mypy",
+            "src",
+            "tests"
+          ],
+          "exit_code": 0,
+          "output": "Success: no issues found in 4 source files\n"
+        },
+        {
+          "name": "ruff",
+          "command": [
+            "/tmp/patchpilot-p4-openai-new/bin/python",
+            "-m",
+            "ruff",
+            "check",
+            "src",
+            "tests"
+          ],
+          "exit_code": 0,
+          "output": "All checks passed!\n"
+        },
+        {
+          "name": "runtime/import",
+          "command": [
+            "/tmp/patchpilot-p4-openai-new/bin/python",
+            "-c",
+            "import assistant_app; assert assistant_app"
+          ],
+          "exit_code": 0,
+          "output": ""
+        }
+      ]
+    },
+    "verification_after": {
+      "passed": true,
+      "checks": [
+        {
+          "name": "OpenAI Python SDK 1.x migration",
+          "command": [],
+          "exit_code": 0,
+          "output": "dependency and old API scan"
+        },
+        {
+          "name": "installed OpenAI Python SDK 1.x",
+          "command": [
+            "/tmp/patchpilot-p4-openai-new/bin/python",
+            "-c",
+            "import importlib.metadata,sys; from packaging.specifiers import SpecifierSet; sys.exit(importlib.metadata.version(sys.argv[1]) not in SpecifierSet(sys.argv[2]))",
+            "openai",
+            "==1.109.1"
+          ],
+          "exit_code": 0,
+          "output": ""
+        },
+        {
+          "name": "pytest",
+          "command": [
+            "/tmp/patchpilot-p4-openai-new/bin/python",
+            "-m",
+            "pytest",
+            "-q",
+            "-p",
+            "no:cacheprovider"
+          ],
+          "exit_code": 0,
+          "output": ".                                                                        [100%]\n1 passed in 1.96s\n"
+        },
+        {
+          "name": "mypy",
+          "command": [
+            "/tmp/patchpilot-p4-openai-new/bin/python",
+            "-m",
+            "mypy",
+            "src",
+            "tests"
+          ],
+          "exit_code": 0,
+          "output": "Success: no issues found in 4 source files\n"
+        },
+        {
+          "name": "ruff",
+          "command": [
+            "/tmp/patchpilot-p4-openai-new/bin/python",
+            "-m",
+            "ruff",
+            "check",
+            "src",
+            "tests"
+          ],
+          "exit_code": 0,
+          "output": "All checks passed!\n"
+        },
+        {
+          "name": "runtime/import",
+          "command": [
+            "/tmp/patchpilot-p4-openai-new/bin/python",
+            "-c",
+            "import assistant_app; assert assistant_app"
+          ],
+          "exit_code": 0,
+          "output": ""
+        }
+      ]
+    },
+    "degraded": false,
+    "degraded_reason": null,
+    "rollback_result": null,
+    "rollback_target": null,
+    "rollback_reason": null
+  }
+]

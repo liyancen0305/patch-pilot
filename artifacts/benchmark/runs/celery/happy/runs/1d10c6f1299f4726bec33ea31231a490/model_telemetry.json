@@ -1,0 +1,126 @@
+[
+  {
+    "run_id": "1d10c6f1299f4726bec33ea31231a490",
+    "attempt_number": 1,
+    "component": "Migration Planner",
+    "model": "controlled-benchmark-test-double",
+    "prompt_name": "04_remaining_use_cases",
+    "prompt_version": "v1.1",
+    "input_metadata": {
+      "retry": 1,
+      "workflow_attempt": 1,
+      "context_files": [
+        "pyproject.toml",
+        "pyproject.toml",
+        "src/jobs/tasks.py",
+        "tests/test_jobs.py",
+        "tests/test_jobs.py",
+        "tests/test_jobs.py",
+        "tests/test_jobs.py",
+        "pyproject.toml",
+        "pyproject.toml",
+        "pyproject.toml",
+        "pyproject.toml",
+        "pyproject.toml",
+        "pyproject.toml",
+        "pyproject.toml",
+        "pyproject.toml",
+        "pyproject.toml",
+        "pyproject.toml",
+        "src/jobs/__init__.py"
+      ],
+      "characters": 7480
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "latency_seconds": 0.002759987000899855,
+    "estimated_cost_usd": 0.0,
+    "structured_output": {
+      "summary": "celery supported-version migration",
+      "planned_changes": [
+        {
+          "file": "pyproject.toml",
+          "symbol": "dependency or affected application behavior",
+          "reason": "old API or dependency compatibility",
+          "change": "migrate to supported API while preserving behavior",
+          "expected_effect": "existing regression behavior remains"
+        },
+        {
+          "file": "src/jobs/config.py",
+          "symbol": "dependency or affected application behavior",
+          "reason": "old API or dependency compatibility",
+          "change": "migrate to supported API while preserving behavior",
+          "expected_effect": "existing regression behavior remains"
+        }
+      ],
+      "affected_files": [
+        "pyproject.toml",
+        "src/jobs/config.py"
+      ],
+      "risks": [
+        "behavioral regression at migration boundary"
+      ],
+      "validation_plan": [
+        "migration-specific",
+        "pytest",
+        "mypy",
+        "ruff",
+        "runtime/import"
+      ]
+    },
+    "error": null,
+    "timestamp": "2026-09-21T01:08:54.707493+00:00"
+  },
+  {
+    "run_id": "1d10c6f1299f4726bec33ea31231a490",
+    "attempt_number": 1,
+    "component": "Patch Generator",
+    "model": "controlled-benchmark-test-double",
+    "prompt_name": "04_remaining_use_cases",
+    "prompt_version": "v1.1",
+    "input_metadata": {
+      "retry": 1,
+      "workflow_attempt": 1,
+      "context_files": [
+        "pyproject.toml",
+        "pyproject.toml",
+        "src/jobs/tasks.py",
+        "tests/test_jobs.py",
+        "tests/test_jobs.py",
+        "tests/test_jobs.py",
+        "tests/test_jobs.py",
+        "pyproject.toml",
+        "pyproject.toml",
+        "pyproject.toml",
+        "pyproject.toml",
+        "pyproject.toml",
+        "pyproject.toml",
+        "pyproject.toml",
+        "pyproject.toml",
+        "pyproject.toml",
+        "pyproject.toml",
+        "src/jobs/__init__.py"
+      ],
+      "characters": 5883
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "latency_seconds": 0.006471832000897848,
+    "estimated_cost_usd": 0.0,
+    "structured_output": {
+      "changes": [
+        {
+          "path": "pyproject.toml",
+          "content": "[build-system]\nrequires = [\"setuptools>=68\"]\nbuild-backend = \"setuptools.build_meta\"\n[project]\nname = \"patchpilot-celery-4-fixture\"\nversion = \"0.1.0\"\nrequires-python = \">=3.10\"\ndependencies = [\"celery==5.5.3\"]\n[tool.setuptools.packages.find]\nwhere = [\"src\"]\n[tool.pytest.ini_options]\ntestpaths = [\"tests\"]\n[tool.mypy]\npython_version = \"3.10\"\nmypy_path = \"src\"\nignore_missing_imports = true\ncheck_untyped_defs = true\n[tool.ruff]\nline-length = 88\ntarget-version = \"py310\"\n"
+        },
+        {
+          "path": "src/jobs/config.py",
+          "content": "broker_url = \"memory://\"\nresult_backend = \"cache+memory://\"\ntask_always_eager = True\ntask_eager_propagates = True\n"
+        }
+      ],
+      "rationale": "controlled celery migration proposal"
+    },
+    "error": null,
+    "timestamp": "2026-09-21T01:08:54.735726+00:00"
+  }
+]
