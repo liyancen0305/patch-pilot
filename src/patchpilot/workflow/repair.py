@@ -1,6 +1,7 @@
 """Prompt 3 failure analysis and deterministic repair policy."""
 
 import re
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -33,24 +34,33 @@ class FailureAnalyzer:
     def __init__(self, client: ModelClient) -> None:
         self.client = client
 
-    def analyze(self, run_id: str, payload: dict[str, Any]) -> FailureAnalysis:
-        return self.client.call(run_id, "Failure Analyzer", payload, FailureAnalysis)
+    def analyze(self, run_id: str, payload: dict[str, Any],
+                on_failure: Callable[[Exception, int, bool], None] | None = None
+                ) -> FailureAnalysis:
+        return self.client.call(run_id, "Failure Analyzer", payload, FailureAnalysis,
+                                on_failure=on_failure)
 
 
 class ChangeReviewer:
     def __init__(self, client: ModelClient) -> None:
         self.client = client
 
-    def review(self, run_id: str, payload: dict[str, Any]) -> ReviewDecision:
-        return self.client.call(run_id, "Change Reviewer", payload, ReviewDecision)
+    def review(self, run_id: str, payload: dict[str, Any],
+               on_failure: Callable[[Exception, int, bool], None] | None = None
+               ) -> ReviewDecision:
+        return self.client.call(run_id, "Change Reviewer", payload, ReviewDecision,
+                                on_failure=on_failure)
 
 
 class RepairGenerator:
     def __init__(self, client: ModelClient) -> None:
         self.client = client
 
-    def generate(self, run_id: str, payload: dict[str, Any]) -> PatchProposal:
-        return self.client.call(run_id, "Repair Generator", payload, PatchProposal)
+    def generate(self, run_id: str, payload: dict[str, Any],
+                 on_failure: Callable[[Exception, int, bool], None] | None = None
+                 ) -> PatchProposal:
+        return self.client.call(run_id, "Repair Generator", payload, PatchProposal,
+                                on_failure=on_failure)
 
 
 def validate_analysis(analysis: FailureAnalysis) -> None:
@@ -77,8 +87,14 @@ def direct_approval_reason(root: Path, analysis: FailureAnalysis,
         path = (root / name).resolve()
         if not path.is_file() or not path.is_relative_to(root.resolve()):
             return None
-        if not (name.startswith(("src/", "tests/")) or name == "pyproject.toml"):
-            return None
+        if repository_analysis is not None:
+            discovered = (set(repository_analysis.source_files) |
+                          set(repository_analysis.test_files) |
+                          set(repository_analysis.configuration_files) |
+                          set(repository_analysis.dependency_files) |
+                          {repository_analysis.dependency_file})
+            if name not in discovered:
+                return None
         if name.endswith("/base.py"):
             return None
         if name in planned:

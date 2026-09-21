@@ -29,6 +29,26 @@ def export_run(store: RunStore, run_id: str, artifact_parent: Path) -> Path:
                         ("target_verification", run.target_verification)):
         if value is not None:
             write(f"{name}.json", json.loads(value.json()))
+    if (run.capability_classification or run.verification_capability or
+            run.guardrail_violations or run.system_failures or run.unsupported_decision or
+            run.allowed_modification_scope or run.guardrail_decisions):
+        write("guardrail_history.json", {
+            "scope_rule": run.scope_rule,
+            "capability_decision": run.capability_decision.dict() if run.capability_decision else None,
+            "classification": run.capability_classification.dict()
+            if run.capability_classification else None,
+            "unsupported": run.unsupported_decision.dict() if run.unsupported_decision else None,
+            "verification_capability": run.verification_capability.dict()
+            if run.verification_capability else None,
+            "violations": [item.dict() for item in run.guardrail_violations],
+            "allowed_modification_scope": run.allowed_modification_scope.dict()
+            if run.allowed_modification_scope else None,
+            "file_decisions": [item.dict() for item in run.guardrail_decisions],
+            "system_failures": [item.dict() for item in run.system_failures],
+            "retries": [item.dict() for item in run.retries],
+            "failure_classification": run.failure_classification,
+            "terminal_reason": run.terminal_reason,
+        })
     if run.repair_attempts or run.failure_analyses or run.context_expansions:
         write("failure_analyses.json", [json.loads(item.json()) for item in run.failure_analyses])
         write("review_history.json", [json.loads(item.json()) for item in run.review_history])
@@ -64,7 +84,12 @@ def export_run(store: RunStore, run_id: str, artifact_parent: Path) -> Path:
                             if item.rollback_result],
         "model": "gpt-5.6-sol" if any(call.model == "gpt-5.6-sol" for call in calls) else
                  (calls[0].model if calls else None),
-        "prompt_version": run.prompt_version, "final_state": run.current_state.value,
+        "prompt_name": run.prompt_name, "prompt_version": run.prompt_version,
+        "final_state": run.current_state.value,
+        "failure_classification": run.failure_classification,
+        "terminal_reason": run.terminal_reason,
+        "scope_violation_count": len(run.guardrail_violations),
+        "system_failure_count": len(run.system_failures),
         "sandbox_verification_passed": run.sandbox_verification.passed if run.sandbox_verification else None,
         "approval": run.approval.decision if run.approval else None,
         "target_branch": run.target_branch,

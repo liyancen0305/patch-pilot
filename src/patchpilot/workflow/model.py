@@ -4,6 +4,7 @@ import json
 import os
 import time
 import urllib.request
+from collections.abc import Callable
 from datetime import datetime, timezone
 from typing import Any, Protocol, TypeVar
 
@@ -58,6 +59,7 @@ class SolBackend:
             "Failure Analyzer": "Analyze verification failures using evidence; do not approve or edit code.",
             "Change Reviewer": "Independently review the proposed repair and decide approval, rejection, or more evidence.",
             "Repair Generator": "Generate only the approved repair files; preserve regression behavior.",
+            "CapabilityClassifier": "Classify ambiguous migration scope only; do not plan or edit code.",
         }
         body = json.dumps({
             "model": self.model,
@@ -89,7 +91,7 @@ class ModelClient:
         self.retries = retries
 
     def call(self, run_id: str, component: str, payload: dict[str, Any],
-             schema: type[T]) -> T:
+             schema: type[T], on_failure: Callable[[Exception, int, bool], None] | None = None) -> T:
         last_error: Exception | None = None
         for attempt in range(self.retries + 1):
             started = time.monotonic()
@@ -129,4 +131,6 @@ class ModelClient:
             ))
             if parsed is not None:
                 return parsed
+            if on_failure is not None and last_error is not None:
+                on_failure(last_error, attempt + 1, attempt < self.retries)
         raise RuntimeError(f"invalid {component} output after retries: {last_error}")

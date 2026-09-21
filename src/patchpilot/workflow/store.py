@@ -64,7 +64,13 @@ class RunStore:
     def move(self, run: RunRecord, next_state: State, trigger: str,
              component: str) -> StateTransitionRecord:
         previous = None if not self.history(run.run_id) else run.current_state
-        event = transition(previous, next_state, trigger, component, run.attempt_number)
+        errors = {State.MODEL_ERROR, State.TOOL_ERROR, State.ENVIRONMENT_ERROR}
+        if next_state in errors and previous not in errors:
+            run.error_origin_state = previous
+        event = transition(previous, next_state, trigger, component, run.attempt_number,
+                           recovery_state=run.error_origin_state)
+        if previous in errors and next_state != State.FAILED_SYSTEM:
+            run.error_origin_state = None
         run.current_state = next_state
         with self._connect() as db:
             db.execute("INSERT INTO transitions (run_id, data) VALUES (?, ?)",

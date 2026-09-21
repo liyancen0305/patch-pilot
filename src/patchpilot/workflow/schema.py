@@ -16,6 +16,11 @@ class StrictModel(BaseModel):
 class State(str, Enum):
     RECEIVED = "RECEIVED"
     SCOPE_CHECK = "SCOPE_CHECK"
+    CAPABILITY_CLASSIFYING = "CAPABILITY_CLASSIFYING"
+    VERIFICATION_CAPABILITY_CHECK = "VERIFICATION_CAPABILITY_CHECK"
+    UNSUPPORTED = "UNSUPPORTED"
+    SCOPE_VIOLATION = "SCOPE_VIOLATION"
+    VERIFICATION_FAILURE = "VERIFICATION_FAILURE"
     ANALYZING_REPO = "ANALYZING_REPO"
     CONTEXT_BUILDING = "CONTEXT_BUILDING"
     PLANNING = "PLANNING"
@@ -57,8 +62,89 @@ class CapabilityDecision(StrictModel):
     reasons: list[str]
 
 
+class CapabilityClassification(StrictModel):
+    classification: Literal["SUPPORTED_MIGRATION", "UNSUPPORTED", "NEED_MORE_INFORMATION"]
+    reason: str = Field(min_length=1)
+    detected_migration_type: str
+    scope_risk: str
+    missing_information: list[str]
+
+
+class UnsupportedDecision(StrictModel):
+    reason: str
+    detected_request_type: str
+    violated_scope_rule: str
+    supported_alternative: str | None = None
+
+
+class VerificationCapabilityResult(StrictModel):
+    sufficient: bool
+    checks: dict[str, bool]
+    reasons: list[str]
+
+
+class GuardrailViolation(StrictModel):
+    rule: str
+    reason: str
+    component: str
+    file: str | None = None
+
+
+class RetryRecord(StrictModel):
+    component: str
+    operation: str | None = None
+    previous_state: str | None = None
+    error_type: str
+    retry_count: int
+    error_message: str
+    recovered: bool
+    timestamp: str
+
+
+class SystemFailureRecord(StrictModel):
+    component: str
+    operation: str | None = None
+    previous_state: str | None = None
+    category: Literal["MODEL_ERROR", "TOOL_ERROR", "ENVIRONMENT_ERROR"]
+    error_type: str
+    error_message: str
+    retry_count: int
+    recovered: bool
+    timestamp: str
+
+
+class AllowedTestRewrite(StrictModel):
+    old_api: str
+    new_api: str
+    reason: str
+
+
+class AllowedFileRule(StrictModel):
+    path: str
+    category: str
+    reason: str
+    migration_relevant: bool
+
+
+class AllowedModificationScope(StrictModel):
+    migration_family: str
+    files: dict[str, AllowedFileRule]
+    approved_files: list[str]
+
+
+class GuardrailDecisionRecord(StrictModel):
+    file: str
+    component: str
+    decision: Literal["ALLOWED", "REJECTED"]
+    category: str | None
+    reason: str
+    test_rewrite_rules: list[str] = Field(default_factory=list)
+    timestamp: str
+
+
 class RepositoryAnalysis(StrictModel):
     dependency_file: str
+    dependency_files: list[str] = Field(default_factory=list)
     dependency_name: str
     dependency_version: str
     source_version: str
@@ -238,10 +324,23 @@ class RunRecord(StrictModel):
     prompt_name: str = "02_happy_path_e2e"
     prompt_version: str = "v1.1"
     attempt_number: int = 1
+    error_origin_state: State | None = None
     repository_identifiers: dict[str, str]
     use_case: int
     migration_family: str
     model_type: str = "unknown"
+    capability_decision: CapabilityDecision | None = None
+    scope_rule: str | None = None
+    capability_classification: CapabilityClassification | None = None
+    unsupported_decision: UnsupportedDecision | None = None
+    verification_capability: VerificationCapabilityResult | None = None
+    guardrail_violations: list[GuardrailViolation] = Field(default_factory=list)
+    allowed_modification_scope: AllowedModificationScope | None = None
+    guardrail_decisions: list[GuardrailDecisionRecord] = Field(default_factory=list)
+    system_failures: list[SystemFailureRecord] = Field(default_factory=list)
+    retries: list[RetryRecord] = Field(default_factory=list)
+    failure_classification: str | None = None
+    terminal_reason: str | None = None
     analysis: RepositoryAnalysis | None = None
     context: ContextBundle | None = None
     plan: MigrationPlan | None = None

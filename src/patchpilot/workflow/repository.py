@@ -38,6 +38,8 @@ def capability(request: MigrationRequest, target: Path,
     if not (target / ".git").is_dir() or shutil.which("git") is None:
         reasons.append("target branch operations unavailable")
     python = verification_python or Path(sys.executable)
+    if not python.is_file():
+        reasons.append("verification Python unavailable")
     for module in ("pytest", "mypy", "ruff"):
         try:
             result = subprocess.run(
@@ -129,6 +131,7 @@ def analyze(root: Path) -> RepositoryAnalysis:
         evidence[name].append(f"AST tests: {', '.join(symbol for symbol, _ in structure.functions)}")
     return RepositoryAnalysis(
         dependency_file=dependency_file,
+        dependency_files=[str(path) for path in dependencies],
         dependency_name=family.dependency_name, dependency_version=version,
         source_version=family.source_version, target_version=family.target_version,
         migration_family=family.name, migration_api_pattern=family.api_usage_pattern,

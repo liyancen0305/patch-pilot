@@ -11,6 +11,7 @@ from test_happy_path import ScriptedSol
 from patchpilot.sandbox import Sandbox
 from patchpilot.tools.repository import search_text as actual_search
 from patchpilot.workflow import RunStore, repository
+from patchpilot.workflow.benchmarks import FAMILIES
 from patchpilot.workflow.guardrails import validate_test_change
 from patchpilot.workflow.repository import analyze, capability, select_context
 from patchpilot.workflow.runner import VerificationRunner, apply_proposal, create_target
@@ -145,10 +146,10 @@ def test_regression_assertion_change_is_rejected() -> None:
     original = (FIXTURE / "tests/test_shop.py").read_text()
     migrated = original.replace(".parse_obj(", ".model_validate(").replace(
         ".dict()", ".model_dump()")
-    validate_test_change(original, migrated)
+    validate_test_change(original, migrated, FAMILIES[0].allowed_test_api_rewrites)
     weakened = migrated.replace('assert user.name == "Ada"', 'assert user.name == "Eve"')
     with pytest.raises(ValueError, match="expectations changed"):
-        validate_test_change(original, weakened)
+        validate_test_change(original, weakened, FAMILIES[0].allowed_test_api_rewrites)
     with Sandbox(FIXTURE) as sandbox:
         proposal = PatchProposal(changes=[FileChange(path="tests/test_shop.py",
                                                      content=weakened)], rationale="weaken test")

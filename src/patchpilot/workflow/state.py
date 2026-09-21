@@ -18,7 +18,21 @@ ALLOWED: dict[State | None, frozenset[State]] = {
     **{a: frozenset({b}) for a, b in itertools.pairwise(HAPPY_PATH)},
     State.READY_FOR_PR: frozenset(),
 }
-ALLOWED[State.VERIFYING_SANDBOX] |= {State.ANALYZING_FAILURE, State.NEEDS_HUMAN_REVIEW}
+ALLOWED[State.VERIFYING_SANDBOX] |= {State.ANALYZING_FAILURE, State.NEEDS_HUMAN_REVIEW,
+                                     State.VERIFICATION_FAILURE}
+ALLOWED[State.VERIFYING_TARGET_BRANCH] |= {State.VERIFICATION_FAILURE}
+ALLOWED[State.SCOPE_CHECK] |= {State.UNSUPPORTED, State.CAPABILITY_CLASSIFYING,
+                               State.VERIFICATION_CAPABILITY_CHECK}
+ALLOWED[State.CAPABILITY_CLASSIFYING] = frozenset({State.VERIFICATION_CAPABILITY_CHECK,
+                                                   State.UNSUPPORTED, State.NEEDS_HUMAN_REVIEW,
+                                                   State.MODEL_ERROR})
+ALLOWED[State.VERIFICATION_CAPABILITY_CHECK] = frozenset({State.ANALYZING_REPO,
+                                                         State.NEEDS_HUMAN_REVIEW,
+                                                         State.ENVIRONMENT_ERROR})
+ALLOWED[State.UNSUPPORTED] = frozenset()
+ALLOWED[State.VERIFICATION_FAILURE] = frozenset({State.ANALYZING_FAILURE,
+                                                State.NEEDS_HUMAN_REVIEW})
+ALLOWED[State.SCOPE_VIOLATION] = frozenset({State.NEEDS_HUMAN_REVIEW})
 ALLOWED.update({
     State.ANALYZING_FAILURE: frozenset({State.REPAIR_PROPOSED, State.NEEDS_HUMAN_REVIEW}),
     State.REPAIR_PROPOSED: frozenset({State.GATHERING_ADDITIONAL_CONTEXT,
@@ -38,16 +52,36 @@ for _state in (State.PLANNING, State.PATCH_GENERATING, State.ANALYZING_FAILURE,
     ALLOWED[_state] |= {State.MODEL_ERROR}
 for _state in (*HAPPY_PATH[:-1], State.ANALYZING_FAILURE, State.REPAIR_PROPOSED,
                State.GATHERING_ADDITIONAL_CONTEXT, State.AWAITING_REVIEW,
-               State.REPAIR_APPROVED, State.REPAIR_REJECTED, State.REPAIRING):
+               State.REPAIR_APPROVED, State.REPAIR_REJECTED, State.REPAIRING,
+               State.CAPABILITY_CLASSIFYING, State.VERIFICATION_CAPABILITY_CHECK,
+               State.VERIFICATION_FAILURE):
     ALLOWED[_state] |= {State.TOOL_ERROR, State.ENVIRONMENT_ERROR, State.FAILED_SYSTEM}
-for _state in (State.MODEL_ERROR, State.TOOL_ERROR, State.ENVIRONMENT_ERROR, State.FAILED_SYSTEM):
-    ALLOWED[_state] = frozenset()
+for _state in (State.MODEL_ERROR, State.TOOL_ERROR, State.ENVIRONMENT_ERROR):
+    ALLOWED[_state] = frozenset({State.FAILED_SYSTEM, *HAPPY_PATH[:-1],
+                                State.CAPABILITY_CLASSIFYING,
+                                State.VERIFICATION_CAPABILITY_CHECK,
+                                State.ANALYZING_FAILURE, State.AWAITING_REVIEW,
+                                State.REPAIRING})
+# A final metadata write can fail after a terminal result was computed. Its
+# persistence failure must still be routed through the central error states.
+for _terminal in (State.READY_FOR_PR, State.UNSUPPORTED, State.NEEDS_HUMAN_REVIEW):
+    ALLOWED[_terminal] |= {State.TOOL_ERROR}
+ALLOWED[State.TOOL_ERROR] |= {State.READY_FOR_PR, State.UNSUPPORTED,
+                              State.NEEDS_HUMAN_REVIEW}
+ALLOWED[State.FAILED_SYSTEM] = frozenset()
+for _state in (State.PLANNING, State.PATCH_GENERATING, State.PATCHING_SANDBOX,
+               State.ANALYZING_FAILURE, State.REPAIR_PROPOSED, State.REPAIRING):
+    ALLOWED[_state] |= {State.SCOPE_VIOLATION}
 
 
 def transition(previous: State | None, next_state: State, trigger: str,
-               component: str, attempt_number: int = 1) -> StateTransitionRecord:
+               component: str, attempt_number: int = 1,
+               recovery_state: State | None = None) -> StateTransitionRecord:
     if next_state not in ALLOWED[previous]:
         raise ValueError(f"invalid transition: {previous} -> {next_state}")
+    if (previous in (State.MODEL_ERROR, State.TOOL_ERROR, State.ENVIRONMENT_ERROR)
+            and next_state != State.FAILED_SYSTEM and next_state != recovery_state):
+        raise ValueError("error recovery must return to the recorded previous state")
     if attempt_number not in (1, 2, 3):
         raise ValueError("attempt number must be 1, 2, or 3")
     if not trigger or not component:
