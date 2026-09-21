@@ -5,3 +5,10 @@ __pycache__/
 .ruff_cache/
 *.egg-info/
 *.db
+
+artifacts/target/
+artifacts/runs.db
+artifacts/controlled-*/target/
+artifacts/controlled-*/runs.db
+artifacts/controlled-*/verified.patch
+artifacts/controlled-*/sandbox-snapshot.bundle

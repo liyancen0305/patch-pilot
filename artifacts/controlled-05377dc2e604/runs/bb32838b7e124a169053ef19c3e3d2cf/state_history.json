@@ -1,0 +1,100 @@
+[
+  {
+    "previous_state": "INITIAL",
+    "trigger": "request_created",
+    "component": "Orchestrator",
+    "next_state": "RECEIVED",
+    "timestamp": "2026-09-20T22:45:35.720304+00:00"
+  },
+  {
+    "previous_state": "RECEIVED",
+    "trigger": "begin_capability_check",
+    "component": "Orchestrator",
+    "next_state": "SCOPE_CHECK",
+    "timestamp": "2026-09-20T22:45:35.724974+00:00"
+  },
+  {
+    "previous_state": "SCOPE_CHECK",
+    "trigger": "supported",
+    "component": "Capability Gate",
+    "next_state": "ANALYZING_REPO",
+    "timestamp": "2026-09-20T22:45:36.229469+00:00"
+  },
+  {
+    "previous_state": "ANALYZING_REPO",
+    "trigger": "analysis_complete",
+    "component": "Repository Analyzer",
+    "next_state": "CONTEXT_BUILDING",
+    "timestamp": "2026-09-20T22:45:36.283211+00:00"
+  },
+  {
+    "previous_state": "CONTEXT_BUILDING",
+    "trigger": "context_selected",
+    "component": "Context Manager",
+    "next_state": "PLANNING",
+    "timestamp": "2026-09-20T22:45:36.300063+00:00"
+  },
+  {
+    "previous_state": "PLANNING",
+    "trigger": "plan_validated",
+    "component": "Migration Planner",
+    "next_state": "PATCH_GENERATING",
+    "timestamp": "2026-09-20T22:45:36.315638+00:00"
+  },
+  {
+    "previous_state": "PATCH_GENERATING",
+    "trigger": "proposal_validated",
+    "component": "Patch Generator",
+    "next_state": "PATCHING_SANDBOX",
+    "timestamp": "2026-09-20T22:45:36.337530+00:00"
+  },
+  {
+    "previous_state": "PATCHING_SANDBOX",
+    "trigger": "sandbox_patch_applied",
+    "component": "Patch Tool",
+    "next_state": "VERIFYING_SANDBOX",
+    "timestamp": "2026-09-20T22:45:36.422959+00:00"
+  },
+  {
+    "previous_state": "VERIFYING_SANDBOX",
+    "trigger": "checks_passed",
+    "component": "Verification Runner",
+    "next_state": "VERIFIED_PATCH_READY",
+    "timestamp": "2026-09-20T22:45:43.194247+00:00"
+  },
+  {
+    "previous_state": "VERIFIED_PATCH_READY",
+    "trigger": "approval_requested",
+    "component": "Orchestrator",
+    "next_state": "AWAITING_APPROVAL",
+    "timestamp": "2026-09-20T22:45:43.244717+00:00"
+  },
+  {
+    "previous_state": "AWAITING_APPROVAL",
+    "trigger": "approved",
+    "component": "Simulated Human",
+    "next_state": "APPROVED",
+    "timestamp": "2026-09-20T22:45:43.284082+00:00"
+  },
+  {
+    "previous_state": "APPROVED",
+    "trigger": "apply_authorized",
+    "component": "Orchestrator",
+    "next_state": "APPLYING_TO_TARGET_BRANCH",
+    "timestamp": "2026-09-20T22:45:43.297243+00:00"
+  },
+  {
+    "previous_state": "APPLYING_TO_TARGET_BRANCH",
+    "trigger": "exact_patch_applied",
+    "component": "Patch Tool",
+    "next_state": "VERIFYING_TARGET_BRANCH",
+    "timestamp": "2026-09-20T22:45:43.344841+00:00"
+  },
+  {
+    "previous_state": "VERIFYING_TARGET_BRANCH",
+    "trigger": "checks_passed",
+    "component": "Verification Runner",
+    "next_state": "READY_FOR_PR",
+    "timestamp": "2026-09-20T22:45:50.346598+00:00"
+  }
+]

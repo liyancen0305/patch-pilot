@@ -73,14 +73,27 @@ class Sandbox:
         return self._safe_path(relative).read_text()
 
     def checkpoint(self, message: str) -> str:
+        """Create and trust a caller-verified checkpoint (Part 1 API)."""
+        revision = self.candidate_checkpoint(message)
+        self.promote_candidate(revision)
+        return revision
+
+    def candidate_checkpoint(self, message: str) -> str:
+        """Commit a proposal without changing the last verified state."""
         if not message.strip():
             raise ValueError("checkpoint message is required")
         self._git("add", "-A")
         if self._git("status", "--porcelain").strip():
             self._git("commit", "-qm", message)
-        revision = self._git("rev-parse", "HEAD").strip()
+        return self._git("rev-parse", "HEAD").strip()
+
+    def promote_candidate(self, revision: str) -> None:
+        """Trust the current candidate after deterministic verification."""
+        if revision != self._git("rev-parse", "HEAD").strip():
+            raise ValueError("candidate must be the current checkpoint")
+        if self._git("status", "--porcelain", "--untracked-files=no").strip():
+            raise ValueError("candidate has uncommitted tracked changes")
         self._set_stable(revision)
-        return revision
 
     def rollback(self) -> None:
         """Restore the last stable commit, including removal of untracked files."""

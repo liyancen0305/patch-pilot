@@ -69,6 +69,8 @@ Do not implement full run tracing yet, but establish the prompt-storage conventi
 
 Create a small but realistic Python application pinned to **Pydantic v1**.
 
+The canonical fixture dependency must be pinned exactly to `pydantic==1.10.26` in its dependency configuration. Do not use a Pydantic version range. This exact version is the reproducible baseline for later migration and model-comparison runs. Update any related lock/configuration files if required.
+
 This repository will later be migrated by PatchPilot.
 
 It must contain multiple source files so that the future migration is not a trivial one-file search-and-replace.
@@ -340,6 +342,8 @@ Before finishing, verify all of the following:
 [ ] Prompt version metadata is stored
 
 [ ] Canonical Pydantic v1 fixture exists
+
+[ ] Canonical fixture dependency is exactly pydantic==1.10.26
 
 [ ] Fixture contains multiple realistic Pydantic v1 usages
 

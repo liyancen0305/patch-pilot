@@ -7,7 +7,7 @@ name = "patchpilot"
 version = "0.1.0"
 description = "Deterministic foundations for code migration verification"
 requires-python = ">=3.10"
-dependencies = []
+dependencies = ["pydantic>=1.10,<3", "tomli>=2; python_version<'3.11'"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8,<9", "mypy>=1.10,<2", "ruff>=0.6,<1", "pydantic==1.10.26"]

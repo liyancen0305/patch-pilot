@@ -1,0 +1,20 @@
+{
+  "run_id": "bb32838b7e124a169053ef19c3e3d2cf",
+  "migration_goal": "Upgrade Pydantic v1 to Pydantic v2",
+  "model": "gpt-5.6-sol-test-double",
+  "prompt_version": "v1.1",
+  "final_state": "READY_FOR_PR",
+  "sandbox_verification_passed": true,
+  "approval": "APPROVE",
+  "target_branch": "patchpilot/pydantic-v2-bb32838b",
+  "target_verification_passed": true,
+  "attempt_count": 1,
+  "total_model_calls": 2,
+  "input_tokens": 400,
+  "output_tokens": 580,
+  "estimated_cost_usd": 0,
+  "model_latency_seconds": 0.001230175000273448,
+  "end_to_end_latency_seconds": 14.650893,
+  "verified_patch_sha256": "5ed9750117a48a4ad603eed470d7b39af9f57c9df06e8c7c565148f63aa6a6dd",
+  "final_status": "READY_FOR_PR"
+}
