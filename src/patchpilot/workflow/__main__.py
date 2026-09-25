@@ -1,4 +1,4 @@
-"""Run the Prompt 2 workflow with the Sol backend."""
+"""Optional provider workflow entrypoint; the portfolio demo uses scripts/run_controlled_repair.py."""
 
 import argparse
 import json

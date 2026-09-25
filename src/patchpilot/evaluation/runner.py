@@ -142,7 +142,7 @@ def environment_snapshot(config: dict[str, Any]) -> dict[str, Any]:
 def preflight(config: dict[str, Any]) -> list[str]:
     reasons = []
     if not os.environ.get("OPENAI_API_KEY"):
-        reasons.append("OPENAI_API_KEY is unavailable")
+        reasons.append("Optional provider adapter is unconfigured; controlled evaluation needs no provider access")
     for label, model in config["models"].items():
         if call_cost(config["pricing"], model, 1, 1, live=True) is None:
             reasons.append(
@@ -390,16 +390,14 @@ def main() -> None:
     validate_config(config)
     frozen = fingerprint(args.root)
     check_freeze(args.root, frozen)
-    reasons = preflight(config)
-    if not args.live:
-        reasons.append(
-            "Live execution not requested (pass --live after configuring access/pricing)"
-        )
+    reasons = preflight(config) if args.live else [
+        "Live provider model benchmarking: NOT MEASURED / DEFERRED; controlled evaluation needs no provider access"
+    ]
     common = {
         "prompt": PROMPT,
         "config": config,
         "fingerprint": frozen,
-        "status": "BLOCKED / NOT YET MEASURED",
+        "status": "BLOCKED / NOT YET MEASURED" if args.live else "NOT MEASURED / DEFERRED",
         "mode": "not_measured",
         "reasons": reasons,
     }
@@ -442,7 +440,7 @@ def main() -> None:
                 "reason": "Final assignment and optimized rerun require measured evidence",
             },
         )
-        print("BLOCKED / NOT YET MEASURED: " + "; ".join(reasons))
+        print(common["status"] + ": " + "; ".join(reasons))
         return
     if args.finalize:
         if args.annotations is None:

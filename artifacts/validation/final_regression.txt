@@ -1,0 +1,25 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.4.2, pluggy-1.6.0
+rootdir: /home/liyan/Documents/github/patch-pilot
+configfile: pyproject.toml
+testpaths: tests
+collected 137 items
+
+tests/test_approval.py .                                                 [  0%]
+tests/test_foundation.py .......                                         [  5%]
+tests/test_happy_path.py .                                               [  6%]
+tests/test_model_error.py .                                              [  7%]
+tests/test_model_evaluation.py .........................                 [ 25%]
+tests/test_prompt2_fixes.py ........                                     [ 31%]
+tests/test_prompt3_repair.py ...............                             [ 42%]
+tests/test_prompt4_benchmark.py ............................             [ 62%]
+tests/test_prompt5_generic_guardrails.py .......                         [ 67%]
+tests/test_prompt5_guardrails.py ............................            [ 88%]
+tests/test_prompt5_sqlite_failures.py ......                             [ 92%]
+tests/test_prompt_versions.py ....                                       [ 95%]
+tests/test_structured_outputs.py ...                                     [ 97%]
+tests/test_workflow.py ..                                                [ 99%]
+tests/test_workflow_boundaries.py .                                      [100%]
+
+- generated xml file: /home/liyan/Documents/github/patch-pilot/artifacts/validation/final_regression.xml -
+======================= 137 passed in 591.66s (0:09:51) ========================

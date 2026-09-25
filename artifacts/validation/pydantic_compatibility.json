@@ -1,0 +1,9 @@
+{
+  "pydantic_version": "2.13.5",
+  "mode": "CONTROLLED / TEST-DOUBLE EVALUATION",
+  "schemas_unchanged": 32,
+  "historical_runs_roundtripped": 10,
+  "deprecation_warnings": 0,
+  "warnings_policy": "DeprecationWarning treated as error",
+  "passed": true
+}

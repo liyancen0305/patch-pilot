@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Literal, TypeVar, cast
 
-from pydantic import BaseModel
+from pydantic.v1 import BaseModel
 
 from patchpilot.sandbox import Sandbox
 

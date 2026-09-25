@@ -8,7 +8,7 @@ from collections.abc import Callable
 from datetime import datetime, timezone
 from typing import Any, Protocol, TypeVar
 
-from pydantic import BaseModel, ValidationError
+from pydantic.v1 import BaseModel, ValidationError
 
 from patchpilot.evaluation.pricing import call_cost, environment_pricing
 
@@ -47,14 +47,14 @@ def strict_output_schema(model: type[BaseModel]) -> dict[str, Any]:
 
 
 class SolBackend:
-    """OpenAI Responses API adapter; credentials come from the environment."""
+    """Optional provider adapter; unused by controlled demos and acceptance tests."""
 
     model = "gpt-5.6-sol"
 
     def complete(self, component: str, payload: dict[str, Any], schema: type[T]) -> tuple[dict[str, Any], int, int]:
         key = os.environ.get("OPENAI_API_KEY")
         if not key:
-            raise RuntimeError("OPENAI_API_KEY is required for a live Sol run")
+            raise RuntimeError("Optional provider adapter is unconfigured; use the controlled demo for portfolio evaluation")
         roles = {
             "Migration Planner": "Plan only requested migration changes; do not generate code.",
             "Patch Generator": "Generate only the planned migration patch.",

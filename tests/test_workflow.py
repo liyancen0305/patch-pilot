@@ -4,7 +4,7 @@ import itertools
 from pathlib import Path
 
 import pytest
-from pydantic import ValidationError
+from pydantic.v1 import ValidationError
 
 from patchpilot.workflow.repository import analyze, select_context
 from patchpilot.workflow.schema import MigrationPlan, PatchProposal, State

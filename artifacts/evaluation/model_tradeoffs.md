@@ -1,142 +1,122 @@
-# Model evaluation — Prompt 06 v1
+# Model Selection & Trade-offs
 
-**BLOCKED / NOT YET MEASURED.** No live calls were made: `OPENAI_API_KEY` is absent.
-Provider model IDs are configuration defaults inherited from the project's Sol
-adapter and the requested Terra family; account availability has not been verified.
-Both models' prices are deliberately null until verified against the provider.
+**Live provider model benchmarking: NOT MEASURED / DEFERRED.**
+**OpenAI API key: NOT REQUIRED.**
+**Real Sol/Terra cost and latency claims: NOT MADE.**
 
-## Decisions and results
+The portfolio deliverable is an evaluation framework validated with
+**CONTROLLED / TEST-DOUBLE EVALUATION**, not a completed live model comparison.
+No provider account, credits, or live calls are needed for the documented demos,
+automated tests, or default evaluation-status command. Historical Prompt 6 metadata
+recorded the absence of live access as blocked; this portfolio status records the
+same unmeasured experiments as deferred. No measured result has been overwritten.
 
-| Component | Comparison | Final selection | Rationale |
+| Component | Decision | Final assignment | Evidence still missing |
 | --- | --- | --- | --- |
-| Migration Planner | INCONCLUSIVE | Not selected | No live baseline or substitution evidence |
-| Patch Generator | INCONCLUSIVE | Not selected | No live baseline or substitution evidence |
-| Failure Analyzer | INCONCLUSIVE | Not selected | No live failure-analysis coverage |
-| Repair Generator | INCONCLUSIVE | Not selected | No live repair coverage |
-| Change Reviewer | INCONCLUSIVE | Not selected | No live decisions or independent correctness labels |
-| Capability Classifier | INCONCLUSIVE | Not selected | No live ambiguous-request coverage |
+| Migration Planner | INCONCLUSIVE | Pending | Live baseline and isolated substitution |
+| Patch Generator | INCONCLUSIVE | Pending | Live baseline and isolated substitution |
+| Failure Analyzer | INCONCLUSIVE | Pending | Live failure-analysis coverage |
+| Repair Generator | INCONCLUSIVE | Pending | Live repair coverage |
+| Change Reviewer | INCONCLUSIVE | Pending | Live review coverage and independent correctness labels |
+| Capability Classifier | INCONCLUSIVE | Pending | Live ambiguous-request coverage |
 
-Sol quality, Terra quality, quality differences, cost differences, average latency,
-and p95 latency are **not measured**, rather than zero. Sol remains the original
-operational default; it has not won this comparison. The optimized configuration
-and optimized end-to-end results are pending evidence for every component.
+The existing Sol adapter is an implementation default, not an evidence-selected
+winner. There is no final mixed-model assignment or optimized live end-to-end run.
+No live quality differences, token costs, dollar costs, average latencies, or p95
+latencies are reported. Missing metrics stay null, rather than being invented as zero.
 
-## Reproduction and attribution
+## Methodology implemented by the framework
 
-1. Use the unchanged five family fixtures: Pydantic v1 → v2, SQLAlchemy 1.4 → 2.0,
-   HTTPX 0.27 → 0.28, OpenAI SDK 0.28 → 1.x, and Celery 4 → 5.
-2. Install project development dependencies and run `scripts/setup_prompt4_envs.sh`.
-3. Set `OPENAI_API_KEY`. Verify the actual provider IDs and populate input/output
-   USD-per-million rates, pricing source, and pricing version in
-   `config/model_evaluation.json`. The default ID mapping does not prove access.
-4. Run `.venv/bin/python -m patchpilot.evaluation.runner --live --output
-   artifacts/evaluation/live-001` as one shell command, in a fresh output directory.
-5. Each experiment uses the same configuration, ordered families, repetitions,
-   source fingerprints, verification interpreters/package versions, model prompts,
-   schemas, and repair-enabled Prompt 5 workflow. Only the API model ID changes.
-   The evaluation wrapper records Prompt 06 v1 separately from workflow Prompt 05 v1.
-6. The complete Sol baseline is written before six isolated substitutions. Failure
-   rows stay in the denominator. Exceptions interrupt and retain partial evidence;
-   partial experiments cannot support selection. Repeat interrupted work in a new
-   directory; partial resumption is deliberately unsupported.
-7. Independently adjudicate quality with evidence, then use `--live --finalize
-   --annotations /path/to/labels.json --output artifacts/evaluation/live-001` with
-   the same config. Finalization retains unannotated measurements, attaches labels,
-   recomputes decisions, and runs the complete benchmark with the selected assignment
-   only if all six decisions are conclusive.
+1. Keep the five migration families, starting fixtures, architecture, verification,
+   model prompts, and context budgets fixed. Record configuration, prompt version,
+   source fingerprints, and verification environment versions.
+2. Record the full all-Sol baseline before any substitutions. Restore it for each
+   experiment and change only one of the six LLM components to Terra.
+3. Assess success, first-pass/repair success, regressions, unnecessary modifications,
+   human escalation, Reviewer correctness, and safety behavior before considering
+   cost or speed. Independent quality annotations need an adjudicator and an
+   evidence file whose hash is recorded.
+4. Aggregate actual usage-based cost per call, component, run, and benchmark. Pricing
+   assumptions are centralized and versioned. Test-double or unknown usage/prices
+   cannot support live cost claims.
+5. Compare mean and nearest-rank p95 latency, emphasizing p95 for tail behavior.
+   **Approximately 20% p95 slowdown is a portfolio-level guideline, not a production
+   SLA.** A larger slowdown stays inconclusive until explicitly justified on cost
+   and quality; it is not automatically evidence that the cheaper model is unusable.
+6. Require conclusive evidence for every assignment before running the chosen mixed
+   configuration across the entire fixed benchmark. A mixed run still needs its own
+   independent quality review; isolated comparisons do not establish combined quality.
 
-Annotation JSON is keyed by workflow `run_id`. Each entry has `adjudicator`,
-`evidence_file` (existing local file, SHA-256 recorded), and `labels` with boolean or
-null fields: `regressions_introduced`, `unnecessary_modification`, `reviewer_correct`,
-`safety_preserved`. A label must be grounded in that run's diff, verification output,
-review decisions, and independently assessed expected behavior. Do not label a
-reviewer correct when it was never called. Labels are human evidence, not inferred
-from READY_FOR_PR or generated by the model under evaluation.
+Defaults in [configuration](../../config/model_evaluation.json) are zero tolerated
+observed quality loss, at least 10% cost savings, and at least 20 calls for each
+compared component/model. Sol and Terra IDs are configurable, unverified provider
+assumptions. The three repetitions are a starting configuration, not sufficient
+statistical evidence for production decisions.
 
-## Metrics and decision policy
+## Measurement definitions
 
-* Success and first-pass rates use every completed benchmark row, including model,
-  tool, environment, and human-escalation terminal states. First-pass success means
-  READY_FOR_PR on attempt 1. Human escalation means NEEDS_HUMAN_REVIEW.
-* Repair success is conditional on reaching attempt 2 or later; zero opportunities
-  yields null. Report denominators and call counts, not an invented 100% repair rate.
-* Regression/unnecessary-modification rates are the fraction of independently
-  labeled runs with any such defect, not the fraction of edited lines. Reviewer
-  correctness and safety preservation are adjudicated per run. Unknown labels stay
-  null. Selection refuses incomplete run-level quality labels.
-* Call latency is wall time around the provider adapter, including request,
-  response reading and decoding. Each retry is a separate call. Failures are included
-  in latency distributions. End-to-end latency includes the complete workflow and
-  deterministic tools. Component statistics include count, arithmetic mean, and
-  nearest-rank p95: sorted values at ceil(0.95 × n), using one-based indexing.
-* Cost is actual reported input/output token usage multiplied by versioned configured
-  rates. These are usage-based estimates, not provider invoices; cached-token,
-  batch, tier, or other discounts are not modeled. A missing price, missing usage,
-  or failed call with unknown billed usage makes its cost and dependent totals null.
-  Test doubles have null tokens/cost in evaluation artifacts, even if they return
-  synthetic token counts. No synthetic measurements are used in published results.
-* Report per-call, component-total, run-total, average per case execution, and
-  total benchmark cost. Repetitions remain separate case executions.
-* Quality loss is checked before savings. Defaults: zero tolerated observed quality
-  degradation, meaningful savings ≥10%, p95 slowdown ≤20%, and ≥20 observed calls
-  for each compared component/model. This is a conservative portfolio rule, not a
-  statistical noninferiority claim. Above 20%, the automatic decision is INCONCLUSIVE
-  pending explicit documented cost/quality justification; no automatic override exists.
-* The selected mixed configuration must be rerun; component-level comparisons alone
-  do not establish that model interactions preserve end-to-end quality.
+- Success is `READY_FOR_PR`. First-pass success also requires Attempt 1. All completed
+  migration cases remain in the denominator, including failures and escalations.
+- Repair success is conditional on reaching Attempt 2 or later. No opportunities
+  means null. Human escalation is `NEEDS_HUMAN_REVIEW`.
+- Regression and unnecessary-modification rates are per independently adjudicated
+  run, not per edited line. Reviewer correctness and safety preservation also need
+  evidence; a passing verification suite alone does not establish those labels.
+- p95 is the sorted observation at one-based index `ceil(0.95 × n)`. Every retry is
+  a separate timed call; component statistics include counts and mean latency.
+- Call timing covers the provider adapter; end-to-end timing includes workflow tools.
+  Synthetic call timing is not provider latency.
+- Cost is reported input/output tokens times configured rates, not a provider invoice.
+  Cached-token, batch, and tier discounts are not modeled. Unknown billed usage on
+  failed calls leaves costs and dependent totals unknown.
 
-## Frozen architecture and validation scope
+## Inspect or validate without provider access
 
-The Orchestrator, transitions, repository/context logic, verifier, sandbox, repair,
-Reviewer decisions, capability policy, persistence, benchmark data and solutions are
-unchanged. `config/evaluation_freeze.json` locks deterministic sources and fixtures;
-per-experiment fingerprints also cover model prompts, evaluation code and tests.
-The only existing production module modified is the model boundary: unknown pricing
-and usage are handled honestly, and cost calculation uses the shared pricing helper.
-The routing adapter reuses existing provider prompts and output schemas verbatim.
+From the repository root, after the [project setup](../../README.md#how-to-run):
 
-Existing deterministic test-double scenarios cover happy path, attempts 2 and 3,
-max-attempt escalation, review, context expansion, unsupported requests, scope
-violations, and model/tool/environment failures. Their test report is separate from
-live evaluation. They prove execution semantics, not provider quality or performance.
-The historical workflow `model_type` recognizes only the original Sol backend;
-for mixed runs use evaluation `mode` and each journal call's `source`/`model` as the
-authoritative provenance. Legacy workflow cost records are not used for selection.
+```bash
+.venv/bin/python -m patchpilot.evaluation.runner
+.venv/bin/python -m pytest tests/test_model_evaluation.py -ra
+```
 
-## Remaining limitations
+The first command records deferred status and makes no network/model calls. The
+second runs deterministic harness tests, including a real-verifier controlled repair.
+The existing optional provider adapter and opt-in experiment path remain for future
+research; they are not the project's setup or acceptance path. No API-specific setup
+is needed for this portfolio.
 
-* No baseline, substitution, or optimized live run has been performed. No model is
-  claimed better, cheaper, or faster. Verified prices and provider access are needed.
-* Natural benchmark runs may never invoke repair, review, or classification. The
-  exact supported requests bypass the ambiguous-request classifier by design.
-  Existing scripted fault scenarios must not be mislabeled as live comparisons.
-  A separate frozen replay study using existing failure/ambiguity
-  evidence is needed if natural coverage cannot support these components; that replay
-  runner is not implemented here. This
-  harness leaves them inconclusive and does not add or change benchmark cases.
-* Three repetitions of five small fixtures may leave fewer than 20 calls per
-  component, and do not support strong statistical claims about p95 or quality.
-  Increase repetitions before starting a new complete evaluation, never only for
-  a favored model. Independent review labels and safety evidence remain necessary.
-* Optimized scenario coverage and the final model interaction assessment remain
-  pending live access and conclusive evidence. No cost-quality trade-off is assumed.
+Quality annotation format, for a future measured run, is a JSON object keyed by
+`run_id`, with `adjudicator`, `evidence_file`, and `labels`. Label fields are
+`regressions_introduced`, `unnecessary_modification`, `reviewer_correct`, and
+`safety_preserved`, each boolean or null. Never label an uncalled Reviewer correct.
+The framework rejects test doubles as live evidence, changed cohorts/configurations,
+partial experiments, insufficient coverage, and unsupported final selections. Existing
+live experiment records cannot be silently overwritten.
 
-## Artifacts
+## Limitations and artifact interpretation
 
-* `sol_baseline.json`: blocked baseline, configuration, prompt version, fingerprints.
-* `component_comparisons.json`: six planned isolated assignments, all INCONCLUSIVE.
-* `optimized_results.json`: no selected assignment or claimed optimized results.
-* `test_double_validation.xml`: automated validation, explicitly not live evidence.
-* Live output directories additionally contain per-experiment JSON, durable call
-  journals, environment versions, and the existing workflow SQLite/patch artifacts.
+Natural happy paths can bypass repair and review. Exact supported requests bypass
+the semantic classifier. Reusing existing failure/ambiguity evidence in a separate
+frozen replay study remains future work if natural runs cannot cover a component;
+this cleanup did not add scenarios or change the benchmark.
 
-## Validation outcome
+Workflow contracts use a Pydantic compatibility namespace to avoid deprecation
+warnings while retaining schema and persistence semantics. The freeze manifest was
+refreshed for compatibility imports and an entrypoint description; fixtures and
+workflow logic were not changed. Current deferred artifacts carry updated source
+fingerprints; historical test reports and benchmark records retain their provenance.
+Legacy workflow `model_type` recognizes the original Sol backend specifically, so
+future mixed experiments should use evaluation `mode` and per-call `source`/`model`
+as their authoritative provenance.
 
-136 distinct automated tests passed across the regression, expanded harness,
-and final unit-check reports (overlapping tests counted once). The complete
-regression invocation recorded 129 passes; the later reports cover the expanded
-evaluation tests, including identical real repair state histories through the router.
-The standalone fixed-family benchmark invocation also passed all 28 tests.
-Lint, evaluation type checks, frozen-input checks, and artifact fingerprint checks
-passed. See `validation_summary.json` and its linked JUnit reports. These are
-test-double validation results, not live Sol/Terra measurements.
+- [sol_baseline.json](sol_baseline.json): no baseline measurements.
+- [component_comparisons.json](component_comparisons.json): six planned substitutions,
+  all INCONCLUSIVE.
+- [optimized_results.json](optimized_results.json): no selected assignment or optimized results.
+- [validation_summary.json](validation_summary.json): historical Prompt 6 validation,
+  covering 136 distinct tests across overlapping reports, not model performance.
+- [Final cleanup validation](../validation/): current regression and compatibility checks.
+
+Detailed model-call journals and workflow artifacts would be retained for an actual
+experiment. Prior controlled artifact timing and zero-cost placeholders are not live
+measurements; see the [artifact guide](../README.md).

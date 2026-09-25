@@ -1,0 +1,49 @@
+{
+  "purpose": "Final portfolio cleanup regression; no live model evidence",
+  "evaluation_type": "CONTROLLED / TEST-DOUBLE EVALUATION",
+  "command": ".venv/bin/python -m pytest -ra --junitxml=artifacts/validation/final_regression.xml",
+  "python": "3.12.3",
+  "passed": 137,
+  "failed": 0,
+  "skipped": 0,
+  "pytest_warnings_reported": 0,
+  "regression_log": "final_regression.txt",
+  "junit_report": "final_regression.xml",
+  "prompt_versions": {
+    "01_environment_fixture": "v1",
+    "02_happy_path_e2e": "v1.1",
+    "03_failure_repair_path": "v1",
+    "04_remaining_use_cases": "v1.1",
+    "05_guardrails_failures": "v1",
+    "06_model_optimization_eval": "v1"
+  },
+  "pydantic_v2_unit_tests": {
+    "passed": 9,
+    "failed": 0,
+    "skipped": 0,
+    "deprecation_warnings": 0,
+    "report": "pydantic_v2_unit_tests.xml"
+  },
+  "schema_compatibility_report": "pydantic_compatibility.json",
+  "cleanup_audit_report": "cleanup_audit.json",
+  "fixture_verification": {
+    "pytest_passed": 7,
+    "mypy": "passed",
+    "ruff": "passed",
+    "runtime_import": "passed"
+  },
+  "changed_python_lint": "passed",
+  "evaluation_type_check": "passed",
+  "benchmark_summary_checked_against_persisted_results": true,
+  "evaluation_status": "NOT MEASURED / DEFERRED",
+  "api_key_required_for_portfolio": false,
+  "api_references_retained": "Optional provider adapter and mocked tests; historical prompts explicitly say no key is required.",
+  "new_product_functionality": false,
+  "limitations": [
+    "Python-only fixed migration families and small fixtures",
+    "Correctness bounded by test coverage; local sandbox is not OS isolation",
+    "Approval in demos is simulated; no authenticated approval UI",
+    "No live model comparison, selected winner, or optimized live rerun",
+    "No full provider-request replay; incomplete natural component coverage"
+  ]
+}

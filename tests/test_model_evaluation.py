@@ -432,3 +432,20 @@ def test_measure_never_overwrites_existing_live_evidence(tmp_path):
     with pytest.raises(ValueError, match="immutable"):
         measure(ROOT, tmp_path, "sol_baseline", assignment(), CONFIG, {}, {})
     assert path.read_text() == original
+
+
+def test_default_evaluation_needs_no_provider_access(tmp_path, monkeypatch):
+    import patchpilot.evaluation.runner as module
+
+    def forbidden_preflight(*args):
+        raise AssertionError("Portfolio status must not require a configured provider")
+
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.setattr(module, "preflight", forbidden_preflight)
+    monkeypatch.setattr("sys.argv", ["evaluation", "--output", str(tmp_path)])
+    module.main()
+    for name in ("sol_baseline", "component_comparisons", "optimized_results"):
+        result = json.loads((tmp_path / f"{name}.json").read_text())
+        assert result["status"] == "NOT MEASURED / DEFERRED"
+        assert result["mode"] == "not_measured"
+        assert not result.get("rows")

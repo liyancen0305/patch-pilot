@@ -21,3 +21,14 @@ artifacts/benchmark/runs/*/*/verified.patch
 artifacts/benchmark/runs/*/*/sandbox-snapshot.bundle
 
 artifacts/evaluation/runs/
+
+# Local credentials and interpreter/test output; committed evidence stays visible.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+.venv-*/
+.coverage
+htmlcov/
+.DS_Store
