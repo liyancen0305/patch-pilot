@@ -77,3 +77,54 @@ The summary is written to `artifacts/benchmark/prompt4_summary.json`; each
 run retains its state history, verification results, model telemetry, and patch
 under `artifacts/benchmark/runs/`. The controlled model is a test double.
 Live Sol quality, token usage, cost, and latency evaluation remains deferred.
+
+## Model Selection & Trade-offs
+
+Part 6 preserves the five migration families above and the deterministic workflow.
+The evaluation starts with **Sol for all six LLM components**, then restores that
+baseline before substituting **Terra into one component at a time**. Provider model
+IDs, repetitions, prices, quality tolerance, and decision thresholds live in
+[`config/model_evaluation.json`](config/model_evaluation.json).
+
+**Live evaluation: BLOCKED / NOT YET MEASURED.** `OPENAI_API_KEY` was unavailable
+and provider pricing is unconfigured. No quality, cost, average latency, or p95
+comparison has been measured; no optimized assignment is claimed.
+
+| Component | Terra comparison | Final assignment / rationale |
+| --- | --- | --- |
+| Migration Planner | INCONCLUSIVE | Pending live evidence |
+| Patch Generator | INCONCLUSIVE | Pending live evidence |
+| Failure Analyzer | INCONCLUSIVE | Pending live coverage and evidence |
+| Repair Generator | INCONCLUSIVE | Pending live coverage and evidence |
+| Change Reviewer | INCONCLUSIVE | Pending live coverage and adjudicated review decisions |
+| Capability Classifier | INCONCLUSIVE | Pending live coverage; exact benchmark requests may bypass it |
+
+Sol remains the existing operational default, not a measured winner. Selection
+requires preserved quality first, at least 10% benchmark cost savings, and normally
+p95 within 20% of Sol. Larger slowdowns require an explicit trade-off justification.
+Unknown usage/prices and test-double costs stay `null`. p95 uses the nearest-rank
+method; the default minimum is 20 calls per compared component, so sparse coverage
+remains inconclusive.
+
+Inspect preflight without model calls:
+
+```bash
+.venv/bin/python -m patchpilot.evaluation.runner
+```
+
+After providing API access and verified versioned prices, run into a **fresh** output
+directory to preserve prior evidence:
+
+```bash
+.venv/bin/python -m patchpilot.evaluation.runner --live \
+  --output artifacts/evaluation/live-001
+```
+
+The runner records baseline before substitutions, fingerprints frozen inputs,
+records environment package versions, and persists every call and completed case.
+Independent quality annotations are required before final selection; missing
+coverage or labels never count as success. See
+[`artifacts/evaluation/model_tradeoffs.md`](artifacts/evaluation/model_tradeoffs.md)
+for metric definitions, adjudication, reproduction, limitations, and artifact links.
+The optimized end-to-end run remains pending. Existing scripted-model tests validate
+workflow paths separately and cannot establish Sol/Terra superiority.

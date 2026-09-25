@@ -19,3 +19,5 @@ artifacts/benchmark/runs/*/*/target/
 artifacts/benchmark/runs/*/*/runs.db
 artifacts/benchmark/runs/*/*/verified.patch
 artifacts/benchmark/runs/*/*/sandbox-snapshot.bundle
+
+artifacts/evaluation/runs/

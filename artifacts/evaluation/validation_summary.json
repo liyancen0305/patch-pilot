@@ -1,0 +1,73 @@
+{
+  "config": {
+    "maximum_p95_slowdown_fraction": 0.2,
+    "minimum_component_calls": 20,
+    "minimum_cost_savings_fraction": 0.1,
+    "models": {
+      "Sol": "gpt-5.6-sol",
+      "Terra": "gpt-5.6-terra"
+    },
+    "pricing": {
+      "source": "NOT YET VERIFIED; supply provider rates before live evaluation",
+      "usd_per_million_tokens": {
+        "gpt-5.6-sol": {
+          "input": null,
+          "output": null
+        },
+        "gpt-5.6-terra": {
+          "input": null,
+          "output": null
+        }
+      },
+      "version": "unconfigured-v1"
+    },
+    "prompt": {
+      "name": "06_model_optimization_eval",
+      "version": "v1"
+    },
+    "quality_tolerance": 0.0,
+    "repetitions": 3,
+    "verification_python": {
+      "celery": "/tmp/patchpilot-p4-celery-new/bin/python",
+      "httpx": "/tmp/patchpilot-p4-httpx-new/bin/python",
+      "openai": "/tmp/patchpilot-p4-openai-new/bin/python",
+      "pydantic": "/tmp/patchpilot-pydantic2-venv/bin/python",
+      "sqlalchemy": "/tmp/patchpilot-p4-sqlalchemy-new/bin/python"
+    },
+    "version": "v1"
+  },
+  "evaluation_type_check": "passed",
+  "frozen_inputs_verified": true,
+  "lint": "passed",
+  "live_average_latency": null,
+  "live_cost": null,
+  "live_model_evidence": false,
+  "live_p95_latency": null,
+  "live_quality": null,
+  "mode": "test_double",
+  "prompt": {
+    "name": "06_model_optimization_eval",
+    "version": "v1"
+  },
+  "reports": [
+    {
+      "failed": 0,
+      "file": "test_double_validation.xml",
+      "passed": 129,
+      "skipped": 0
+    },
+    {
+      "failed": 0,
+      "file": "harness_validation.xml",
+      "passed": 23,
+      "skipped": 0
+    },
+    {
+      "failed": 0,
+      "file": "harness_unit_validation.xml",
+      "passed": 23,
+      "skipped": 0
+    }
+  ],
+  "unique_tests_passed": 136
+}

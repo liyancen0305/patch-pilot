@@ -10,6 +10,8 @@ from typing import Any, Protocol, TypeVar
 
 from pydantic import BaseModel, ValidationError
 
+from patchpilot.evaluation.pricing import call_cost, environment_pricing
+
 from .schema import ModelCallRecord
 from .store import RunStore
 
@@ -81,7 +83,10 @@ class SolBackend:
         content = "".join(part.get("text", "") for output in result.get("output", [])
                           for part in output.get("content", []) if part.get("type") == "output_text")
         usage = result.get("usage", {})
-        return json.loads(content), usage.get("input_tokens", 0), usage.get("output_tokens", 0)
+        if any(not isinstance(usage.get(key), int) or usage[key] < 0
+               for key in ("input_tokens", "output_tokens")):
+            raise ValueError("Responses API did not provide valid token usage")
+        return json.loads(content), usage["input_tokens"], usage["output_tokens"]
 
 
 class ModelClient:
@@ -106,12 +111,12 @@ class ModelClient:
                 error = str(exc)
                 parsed = None
             model = getattr(self.backend, "model", "unknown")
-            if model == "gpt-5.6-sol":
-                input_rate = float(os.environ.get("PATCHPILOT_SOL_INPUT_USD_PER_M", "4"))
-                output_rate = float(os.environ.get("PATCHPILOT_SOL_OUTPUT_USD_PER_M", "20"))
-                cost = (input_tokens * input_rate + output_tokens * output_rate) / 1_000_000
-            else:
-                cost = 0.0
+            pricing = getattr(self.backend, "config", {}).get("pricing")
+            if pricing is None:
+                pricing = environment_pricing()
+            live = isinstance(self.backend, SolBackend) or getattr(self.backend, "live", False)
+            cost = call_cost(pricing, model, input_tokens if output is not None else None,
+                             output_tokens if output is not None else None, live=live)
             try:
                 run = self.store.load(run_id)
                 prompt_name, prompt_version, attempt_number = (
@@ -122,7 +127,9 @@ class ModelClient:
                 run_id=run_id, attempt_number=attempt_number, component=component,
                 model=getattr(self.backend, "model", "unknown"),
                 prompt_name=prompt_name, prompt_version=prompt_version,
-                input_metadata={"retry": attempt + 1, "workflow_attempt": attempt_number, "context_files": payload.get("context_files", []),
+                input_metadata={"pricing_version": pricing.get("version"),
+                                "source": "live" if live else "test_double",
+                                "retry": attempt + 1, "workflow_attempt": attempt_number, "context_files": payload.get("context_files", []),
                                 "characters": len(json.dumps(payload))},
                 input_tokens=input_tokens, output_tokens=output_tokens,
                 latency_seconds=time.monotonic() - started,

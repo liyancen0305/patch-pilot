@@ -1,0 +1,25 @@
+{
+  "version": "v1",
+  "prompt": {"name": "06_model_optimization_eval", "version": "v1"},
+  "models": {"Sol": "gpt-5.6-sol", "Terra": "gpt-5.6-terra"},
+  "pricing": {
+    "version": "unconfigured-v1",
+    "source": "NOT YET VERIFIED; supply provider rates before live evaluation",
+    "usd_per_million_tokens": {
+      "gpt-5.6-sol": {"input": null, "output": null},
+      "gpt-5.6-terra": {"input": null, "output": null}
+    }
+  },
+  "repetitions": 3,
+  "quality_tolerance": 0.0,
+  "minimum_cost_savings_fraction": 0.1,
+  "maximum_p95_slowdown_fraction": 0.2,
+  "minimum_component_calls": 20,
+  "verification_python": {
+    "pydantic": "/tmp/patchpilot-pydantic2-venv/bin/python",
+    "sqlalchemy": "/tmp/patchpilot-p4-sqlalchemy-new/bin/python",
+    "httpx": "/tmp/patchpilot-p4-httpx-new/bin/python",
+    "openai": "/tmp/patchpilot-p4-openai-new/bin/python",
+    "celery": "/tmp/patchpilot-p4-celery-new/bin/python"
+  }
+}
